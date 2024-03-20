@@ -73,5 +73,7 @@ I currently have 2 separate todo lists: one for the tool and one for cirQOL. Eac
 - [ ] Add a position editor for rope offsets
 - [ ] Add a new 'no collision' connection (disables collision between the two objects connected)
 - [ ] Add a new 'weld objects' connection (similar to glue but not as rigid)
+- [ ] Add a property to every level editor object called 'destroy after' which specifies after what level of circle expansion should the object destroy itself
+- [ ] Add a property to collectables to ignore collectable ordering, and whether or not to expand the circle
 - [ ] Add a property to every level editor object called a 'tag', which is visible on hover or when ALT is pressed
 - [ ] Add a menu to locate objects by tag
