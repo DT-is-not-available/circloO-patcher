@@ -2,6 +2,12 @@ const fs = require("fs");
 const path = require("path");
 const project = require("./project.json");
 
+try {
+    fs.mkdirSync(path.dirname(project.outfile), {recursive: true});
+} catch (e) {
+    // already exists ig
+}
+
 const srcpath = path.resolve(project.src);
 
 function processFile(fp, using) {
