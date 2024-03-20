@@ -45,10 +45,15 @@ I currently have 2 separate todo lists: one for the tool and one for cirQOL. Eac
 - [ ] Move the 'run level from clipboard', 'copy level from clipboard', and 'open level in editor' to Ctrl+Shift+V (in menus), Ctrl+Shift+C (in a level), and F5 (in a level) respectively
 - [ ] Make the 'open level in editor' hotkey automatically load it in the correct editor save if it is a local level so that you dont wind up with hundreds of saves
 - [ ] Make Ctrl+Shift+V (in the editor) load the level from your clipboard and Ctrl+Shift+C (in the editor) export to clipboard
+- [ ] Make it possible to set values to nan and inf again, as well as `5e-324` (the smallest floating point value possible without being 0)
+- [ ] Change the display of 
 - [ ] Get rid of the currently required `cirQOL` 'patch', move the startup notification to the F1 menu patch
 - [ ] Fix square level drawing when 'Start Full' is enabled
 - [ ] Make level shape and gravity control mode import correctly back into the editor (requires editing the switch-case in assembly, it's probably easy I'm just putting it off)
 - [ ] Add a menu ingame for changing mod settings like skipping menu animations, and cut down on the number of hotkeys involved so things that need to be hotkeys can be added without clashing
+- [ ] Draw the circle 'load zone' since, regardless of the level shape, the game automatically loads and draws things based on the level radius
+- [ ] Increase the precision for all values in the editor
+- [ ] Fix the incorrect text offset in the 'give text inputs a flashing underscore' patch
 
 ### Patcher wishlist
 
@@ -59,5 +64,14 @@ I currently have 2 separate todo lists: one for the tool and one for cirQOL. Eac
 ### cirQOL wishlist
 
 - [ ] Make heart shaped levels draw correctly in the editor
-- [ ] Change outside of the level to be the same color as the background
-- [ ] Draw the level border (and draw the circle border since regardless of level shape the game auto loads things based on the circle shape)
+- [ ] Change outside of the level to be the same color as the background and draw a level border instead (so that you can see collectables and other things outside the level border)
+- [ ] Add UI ingame for setting gravity control mode and level shape, remove those hotkeys
+- [ ] Add a restitution option to the player
+- [ ] Add the option to make the player square
+- [ ] Add the 'make object use improved physics' option to all moving objects, not just the player
+- [ ] Make whether the collectable activates on touching an object a toggleable option
+- [ ] Add a position editor for rope offsets
+- [ ] Add a new 'no collision' connection (disables collision between the two objects connected)
+- [ ] Add a new 'weld objects' connection (similar to glue but not as rigid)
+- [ ] Add a property to every level editor object called a 'tag', which is visible on hover or when ALT is pressed
+- [ ] Add a menu to locate objects by tag
