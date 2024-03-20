@@ -7,7 +7,7 @@ circloO patcher is a tool and set of mods for the game [circloO by Florian van S
 2. Download the script called `cirQOL.csx` from the latest release on the [releases page](https://github.com/DT-is-not-available/circloO-patcher/releases).
 3. Open UndertaleModTool and go to "Scripts" > "Run other script..." and select `cirQOL.csx`. The script will try to automatically find and open the game, but if it can't you may need to open the `data.win` for your game manually.
 
-The rest of the process should be fairly self explanatory.
+The rest of the process should be fairly self-explanatory.
 
 ## Adding custom patches/mods
 
@@ -16,24 +16,24 @@ Currently the only patches you can apply are a collection of patches called cirQ
 ## Building the tool
 
 Since this is essentially just a script for UndertaleModTool, the build process is fairly simple. You will need [Node.js](https://nodejs.org/en/download) (The minimum tested version is v20.11.1 but the build script should in theory run just fine on v16.20.2 or later). Building the script is as simple as running `node build` in the main directory. A few files to take note of:
-- `build.js` is the build script, essentially a custom written preprocessor I wrote in an afternoon that just preprocesses C# script `#load` directives.
+- `build.js` is the build script, essentially a custom-written preprocessor I wrote in an afternoon that just preprocesses C# script `#load` directives.
 - `src/` is where the source for the actual `cirQOL.csx` script is located.
 - `project.json` contains configuration for `build.js`. It is extremely simple, and there is no reason to complicate it further.
 
 ## Contributing
 
-If you would like to contribute, please open a pull request. Additions to `patches.csx` are welcome, 
+If you would like to contribute, please open a pull request.
 
 ## TODOS
 
-I currently have 2 separate todo lists: one for the tool and one for cirQOL. Each todo list is in order of highest priority to lowest priority, and will be updated as things get completed. Each TODO list also comes with a wishlist, which is simply a list of things I would like to do with the tool, but given the amount of time they would take right now I'm not expecting to complete. Help on these items would be greatly appreciated if I ever get to them.
+I currently have 2 separate to-do lists: one for the tool and one for cirQOL. Each to-do list is in order of highest priority to lowest priority and will be updated as things get completed. Each TODO list also comes with a wishlist, which is simply a list of things I would like to do with the tool, but given the amount of time they would take right now I'm not expecting to complete. Help on these items would be greatly appreciated if I ever get to them.
 
 ### Patcher TODO list
 
 - [ ] Self contain all logic for the tool inside of the Form class like a real C# application
-- [ ] Clean up the source files to make them managable
+- [ ] Clean up the source files to make them manageable
 - [ ] Update the patch configuration checkbox list to use custom components and a custom renderer, so that collapsible categories can be added
-- [ ] Replace the 'required patch' option with patch dependancies (for when loading one patch requires loading another)
+- [ ] Replace the 'required patch' option with patch dependencies (for when loading one patch requires loading another)
 - [ ] Create a simple file format for creating and storing custom patches and categories
 - [ ] Remove the built-in patches and put them in their own repository, and rename the tool (at this point cirQOL will inherit the version number, and the new tool will start at v1.0.0)
 
@@ -43,7 +43,7 @@ I currently have 2 separate todo lists: one for the tool and one for cirQOL. Eac
 - [ ] Figure out how to automatically define locals for code entries so that local variables can be used
 - [ ] Remove as many global variables from the patches as possible
 - [ ] Move the 'run level from clipboard', 'copy level from clipboard', and 'open level in editor' to Ctrl+Shift+V (in menus), Ctrl+Shift+C (in a level), and F5 (in a level) respectively
-- [ ] Make the 'open level in editor' hotkey automatically load it in the correct editor save if it is a local level so that you dont wind up with hundreds of saves
+- [ ] Make the 'open level in editor' hotkey automatically load it in the correct editor save if it is a local level so that you do not wind up with hundreds of saves
 - [ ] Make Ctrl+Shift+V (in the editor) load the level from your clipboard and Ctrl+Shift+C (in the editor) export to clipboard
 - [ ] Make it possible to set values to nan and inf again, as well as `5e-324` (the smallest floating point value possible without being 0)
 - [ ] Change the display of 
@@ -63,17 +63,17 @@ I currently have 2 separate todo lists: one for the tool and one for cirQOL. Eac
 
 ### cirQOL wishlist
 
-- [ ] Make heart shaped levels draw correctly in the editor
-- [ ] Change outside of the level to be the same color as the background and draw a level border instead (so that you can see collectables and other things outside the level border)
+- [ ] Make heart-shaped levels draw correctly in the editor
+- [ ] Change the outside of the level to be the same color as the background and draw a level border instead (so that you can see collectibles and other things outside the level border)
 - [ ] Add UI ingame for setting gravity control mode and level shape, remove those hotkeys
 - [ ] Add a restitution option to the player
 - [ ] Add the option to make the player square
 - [ ] Add the 'make object use improved physics' option to all moving objects, not just the player
-- [ ] Make whether the collectable activates on touching an object a toggleable option
+- [ ] Make whether the collectible activates on touching an object a toggleable option
 - [ ] Add a position editor for rope offsets
 - [ ] Add a new 'no collision' connection (disables collision between the two objects connected)
 - [ ] Add a new 'weld objects' connection (similar to glue but not as rigid)
 - [ ] Add a property to every level editor object called 'destroy after' which specifies after what level of circle expansion should the object destroy itself
-- [ ] Add a property to collectables to ignore collectable ordering, and whether or not to expand the circle
+- [ ] Add a property to collectibles to ignore collectible ordering, and whether or not to expand the circle
 - [ ] Add a property to every level editor object called a 'tag', which is visible on hover or when ALT is pressed
 - [ ] Add a menu to locate objects by tag
