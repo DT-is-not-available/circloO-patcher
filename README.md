@@ -34,7 +34,7 @@ I currently have 2 separate to-do lists: one for the tool and one for cirQOL. Ea
 - [ ] Clean up the source files to make them manageable
 - [ ] Update the patch configuration checkbox list to use custom components and a custom renderer, so that collapsible categories can be added
 - [ ] Replace the 'required patch' option with patch dependencies (for when loading one patch requires loading another)
-- [ ] Create a simple file format for creating and storing custom patches and categories
+- [ ] Create a simple file format for creating and storing custom patches and categories (probably similar to levelscript, circloO's level format)
 - [ ] Remove the built-in patches and put them in their own repository, and rename the tool (at this point cirQOL will inherit the version number, and the new tool will start at v1.0.0)
 
 ### cirQOL TODO list
