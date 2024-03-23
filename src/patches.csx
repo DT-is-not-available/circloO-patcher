@@ -44,7 +44,6 @@ code("gml_GlobalScript_0").AppendGML(@"
 global.hacked_editor = true
 global.show_hitboxes = false
 global.make_collectables_draw_smaller = false
-global.global_view_scale = 1
 global.temp = 0
 global.target_instance = 0
 global.animationoverride = false
@@ -84,53 +83,83 @@ callv.v 1
 popz.v", true);
 });
 
-newPatch("e-inf-nan-and-e", "Editor: Allow values to hold infinity, NaN, and E notation", ()=>{
-    
-    /// PATCHDESC: Replace the real value checker to be able to use e notation, infinity, negative infinity, and NaN, allows the editor to handle such values and the setter to receive them
-    code("gml_GlobalScript_is_valid_real").ReplaceGML(@"
-    function is_valid_real() //gml_Script_is_valid_real
-    {
-        if is_real(argument0)
-            return 1;
-        if ((string_lower(argument0) == ""inf"") || (string_lower(argument0) == ""-inf"") || (string_lower(argument0) == ""nan""))
-            return 1;
-        var n = string_length(argument0)
-        if ((n == 0))
-            return 0;
-        var c = string_char_at(argument0, 1)
-        if ((c == ""+"") || (c == ""-""))
-            var i = 2
-        else
-            i = 1
-        var dot = 0
-        var e = 0
-        var firsttime = 1
-        while ((i <= n))
-        {
-            c = string_char_at(argument0, i)
-            if ((c == ""e""))
-            {
-                if (e || firsttime)
-                    return 0;
-                e = 1
-            }
-            else if ((c == "".""))
-            {
-                if dot
-                    return 0;
-                dot = 1
-            }
-            else
-            {
-                firsttime = 0
-                if ((ord(c) < 48) || (ord(c) > 57))
-                    return 0;
-            }
-            i += 1
+newPatch("e-restitution", "Editor: Add restitution to the player and circles", ()=>{
+    GMLFunction(@"
+        function le_restitution_set(argument0) {
+            restitution = argument0
         }
-        return 1;
-    }
-    ", Data);
+    ");
+    GMLFunction(@"
+        function le_restitution_get() {
+            return restitution
+        }
+    ");
+    ReplaceTextInASM("gml_Object_obj_le_collectcircle_Create_0", @"push.s ""Density - how heavy this is: {}""@*<A*
+conv.s.v
+call.i gml_Script_legui_add_variable_update_to_window(argc=6)
+popz.v", @"
+push.s ""Density - how heavy this is: {}""@*A*
+conv.s.v
+call.i gml_Script_legui_add_variable_update_to_window(argc=6)
+popz.v
+pushi.e 1
+conv.i.v
+push.d 0
+conv.d.v
+pushi.e 2
+conv.i.v
+push.i gml_Script_le_restitution_set
+conv.i.v
+pushi.e -1
+conv.i.v
+call.i method(argc=2)
+push.i gml_Script_le_restitution_get
+conv.i.v
+pushi.e -1
+conv.i.v
+call.i method(argc=2)
+push.s ""Restitution - how bouncy this is: {}""
+conv.s.v
+call.i gml_Script_legui_add_variable_update_to_window(argc=6)
+popz.v
+", true);
+bool DONEWCIRCLES = false;
+if (DONEWCIRCLES) ReplaceTextInASM("gml_Object_obj_le_circle_Create_0", @":[0]
+call.i event_inherited(argc=0)", @":[0]
+call.i event_inherited(argc=0)
+pushi.e 0
+pop.v.i self.restitution", true);
+if (DONEWCIRCLES) ReplaceTextInASM("gml_Object_obj_le_circle_Create_0", @"push.s ""Use Wheel Image""@*<A*
+conv.s.v
+call.i gml_Script_legui_create_text_button(argc=7)
+call.i gml_Script_legui_window_add_element(argc=1)
+popz.v", @"push.s ""Use Wheel Image""@*A*
+conv.s.v
+call.i gml_Script_legui_create_text_button(argc=7)
+call.i gml_Script_legui_window_add_element(argc=1)
+popz.v
+pushi.e 1
+conv.i.v
+push.d 0
+conv.d.v
+pushi.e 2
+conv.i.v
+push.i gml_Script_le_restitution_set
+conv.i.v
+pushi.e -1
+conv.i.v
+call.i method(argc=2)
+push.i gml_Script_le_restitution_get
+conv.i.v
+pushi.e -1
+conv.i.v
+call.i method(argc=2)
+push.s ""Restitution - how bouncy this is: {}""
+conv.s.v
+call.i gml_Script_legui_add_variable_update_to_window(argc=6)
+popz.v
+", true);
+
 });
 
 newPatch("e-level-shape", "Editor: Change the shape of the level with F2", ()=>{
@@ -214,10 +243,7 @@ newPatch("e-control-gravity", "Editor: Toggle the control gravity gamemode with 
 newPatch("e-fixed-draw", "Editor: Holding ALT will resize collectables to be a fixed size", ()=>{
     EditorHotkeyHelp.Add("ALT - Resize collectables and portals to be a fixed size");
     /// PATCHDESC: Makes view_scale referencable
-    /// TODO: Figure out which object runs this script so i can just reference view_scale directly
-    ReplaceTextInGML("gml_GlobalScript_le_update_view", "}", @"
-        global.global_view_scale = view_scale
-    }", true);
+    ReplaceTextInGML("gml_GlobalScript_le_check_point_in_this_portal", "24", "global.make_collectables_draw_smaller ? 20 / obj_le_viewhandler.view_scale : 24", true);
 
     /// PATCHDESC: Alt hotkey for showing collectables and portals at a fixed size
     code("gml_Object_obj_leveleditor_Step_0").AppendGML(@"
@@ -232,7 +258,7 @@ newPatch("e-fixed-draw", "Editor: Holding ALT will resize collectables to be a f
     ReplaceTextInGML("gml_Object_obj_le_portal_Draw_0", "draw_sprite_stretched_ext(spr_spiral, 0, (x - 20), (y - 20), 40, 40, global.maincol, 1)", @"
     var drawsize = 40
     if global.make_collectables_draw_smaller {
-        drawsize = 20 / global.global_view_scale
+        drawsize = 20 / obj_le_viewhandler.view_scale
     }
     draw_sprite_stretched_ext(spr_spiral, 0, (x - drawsize/2), (y - drawsize/2), drawsize, drawsize, global.maincol, 1)
     ", true);
@@ -240,7 +266,7 @@ newPatch("e-fixed-draw", "Editor: Holding ALT will resize collectables to be a f
     /// PATCHDESC: Makes collectables have the fixed size in the editor when selecting
     ReplaceTextInGML("gml_GlobalScript_le_tool_collectcircle_get_radius", "switch argument0", @"
     if global.make_collectables_draw_smaller {
-        return 10 / global.global_view_scale
+        return 10 / obj_le_viewhandler.view_scale
     }
     switch argument0", true);
 
@@ -254,10 +280,10 @@ newPatch("e-fixed-draw", "Editor: Holding ALT will resize collectables to be a f
             draw_set_color(c_white)
         }
         if is_trigger_instead {
-            var size = 8 / global.global_view_scale;
+            var size = 8 / obj_le_viewhandler.view_scale;
             draw_rectangle(x - size, y - size, x + size, y + size, false)
         } else
-            draw_circle_fix(x, y, 10 / global.global_view_scale, 0)
+            draw_circle_fix(x, y, 10 / obj_le_viewhandler.view_scale, 0)
         draw_set_halign(fa_center)
         draw_set_valign(fa_middle)
         draw_set_font(fnt_small)
@@ -266,7 +292,7 @@ newPatch("e-fixed-draw", "Editor: Holding ALT will resize collectables to be a f
         } else {
             draw_set_color(c_white)
         }
-        draw_text_transformed((x - 0.5), (y - 0.5), type, 1 / global.global_view_scale, 1 / global.global_view_scale, 0)
+        draw_text_transformed((x - 0.5), (y - 0.5), type, 1 / obj_le_viewhandler.view_scale, 1 / obj_le_viewhandler.view_scale, 0)
         draw_set_halign(fa_left)
         draw_set_valign(fa_top)
         draw_set_color(global.maincol)
@@ -278,7 +304,7 @@ newPatch("e-fixed-draw", "Editor: Holding ALT will resize collectables to be a f
     const string drawselectcircle = "draw_circle_fix(x, y, (((type == 2) ? 32 : (iif(does_not_grow, 0.69999999999999996, 1) * 20)) + 5), 0)";
     ReplaceTextInGML("gml_Object_obj_le_collectcircle_Draw_0", drawselectcircle, @"
     if global.make_collectables_draw_smaller {
-        draw_circle_fix(x, y, 10 / global.global_view_scale + 3, 0)
+        draw_circle_fix(x, y, 10 / obj_le_viewhandler.view_scale + 3, 0)
     } else {
         "+drawselectcircle+@"
     }
@@ -374,6 +400,12 @@ newPatch("q-copy-content", "Copy the current level data with F11", ()=>{
             notification_set(""Copied global.levelloadcontent to clipboard"", 3, -1)
         }
     ", Data);
+});
+
+newPatch("e-attractorprops", "Editor: Allow setting attractors to moving circles", ()=>{
+    ReplaceTextInASM("gml_Object_obj_le_circle_Create_0", @"""Use Wheel Image""@*<ref*", @"""Use Wheel Image""@*ref*
+    call.i gml_Script_legui_add_attractor_update_to_window(argc=0)
+    popz.v", true);
 });
 
 newPatch("q-load-content", "Load clipboard as level data content with F9", ()=>{
@@ -479,220 +511,6 @@ newPatch("e-idk", "Editor: I forgot what this patch does but it has to do with t
     cmp.i.v NEQ", true);
 });
 
-if (ENABLEOLDSETTER) newPatch("+e-oldsetter", "use old setter (DO NOT DO THIS I REPEAT DO NOT DO THIS IT WONT WORK)", ()=>{
-
-/// PATCHDESC: Gets the most recently selected element and puts it in target_instance (for the old setter)
-ReplaceTextInASM("gml_Object_obj_le_par_levelelement_Other_11", @"call.i array_push(argc=2)
-popz.v", @"call.i array_push(argc=2)
-popz.v
-push.v self.id
-pop.v.v global.target_instance", true);
-
-/// PATCHDESC: Adds the Set... button to every button row created with this script (for the old setter)
-ReplaceTextInGML("gml_GlobalScript_legui_add_variable_update_to_window", "var changeVarButtonSize = 60", @"var changeVarButtonSize = 60
-        if global.hacked_editor
-        {
-            
-            var button = legui_create_text_button(""Set..."", undefined, undefined, gml_Script_legui_update_variable, undefined, 90, """")
-            ds_map_set(button, ""clickScriptArgument"", button)
-            ds_map_set(button, ""for_object"", otherID)
-            ds_map_set(button, ""get"", getter)
-            ds_map_set(button, ""set"", setter)
-            ds_map_set(button, ""addAmount"", 0)
-            ds_map_set(button, ""min"", -infinity)
-            ds_map_set(button, ""max"", infinity)
-            ds_map_set(button, ""repeatable"", 1)
-            ds_map_set(button, ""tooltip"", ""Set a specific value by typing in the number"")
-            ds_map_set(button, ""promptOverride"", true)
-
-            legui_toolbar_add_button(windowToolbar, button)
-        }
-", true);
-
-/// PATCHDESC: create a function that runs the button getter when the button is passed to it (for the old setter)
-code("gml_GlobalScript_cirqol_runbuttongetter").ReplaceGML("function cirqol_runbuttongetter(argument0) {}", Data);
-code("gml_GlobalScript_cirqol_runbuttongetter").Replace(Assembler.Assemble(@"
-:[0]
-b [5]
-
-> gml_Script_cirqol_runbuttongetter (locals=0, argc=2)
-:[1]
-pushglb.v global.target_instance
-pushi.e -9
-pushenv [4]
-
-:[withstatement]
-push.s ""set""
-conv.s.v
-push.v arg.argument0
-call.i ds_map_find_value(argc=2)
-call.i is_method(argc=1)
-conv.v.b
-bf [3]
-
-:[2]
-push.v arg.argument1
-call.i @@This@@(argc=0)
-push.s ""set""
-conv.s.v
-push.v arg.argument0
-call.i ds_map_find_value(argc=2)
-callv.v 1
-popz.v
-b [4]
-
-:[3]
-push.v arg.argument1
-push.s ""set""
-conv.s.v
-push.v arg.argument0
-call.i ds_map_find_value(argc=2)
-call.i script_execute(argc=2)
-popz.v
-
-:[4]
-popenv [withstatement]
-exit.i
-
-:[5]
-push.i gml_Script_cirqol_runbuttongetter
-conv.i.v
-pushi.e -1
-conv.i.v
-call.i method(argc=2)
-dup.v 0
-pushi.e -1
-pop.v.v [stacktop]self.cirqol_runbuttongetter
-popz.v
-
-:[end]
-", Data));
-
-/// PATCHDESC: Create a function that when run, shows the debug get string window to set values with (for the old setter)
-code("gml_GlobalScript_cirqol_showsetter").ReplaceGML(@"
-function cirqol_showsetter(argument0, argument1) {
-    cirqol_runbuttongetter(argument1, real(get_string(""Type in a new value to be used"", argument0)))
-}
-", Data);
-
-/// PATCHDESC: Create a function that when run, closes the setter window and goes back to the previous window (for the old setter)
-code("gml_GlobalScript_cirqol_cancelsetter").ReplaceGML(@"
-function cirqol_cancelsetter() {
-    with obj_le_gui {
-        legui_destroy_window()
-        window = global.prevWindow
-        windowRelatedTo = global.prevWindowRelatedTo
-        global.prevWindow = -1
-        global.prevWindowRelatedTo = undefined
-    }
-}
-", Data);
-
-/// PATCHDESC: Create a function that when run, closes the setter window, sets the value to what was typed in, and goes back to the previous window (for the old setter)
-code("gml_GlobalScript_cirqol_confirmsetter").ReplaceGML(@"
-function cirqol_confirmsetter() {
-    if is_valid_real(keyboard_string) {
-        with obj_le_gui {
-            legui_destroy_window()
-            window = global.prevWindow
-            windowRelatedTo = global.prevWindowRelatedTo
-            global.prevWindow = -1
-            global.prevWindowRelatedTo = undefined
-        }
-        cirqol_runbuttongetter(global.cirqol_tempbutton, real(keyboard_string))
-    } else {
-        notification_set(""The provided value is not a real number"", 10, -1)
-    }
-}
-", Data);
-
-/// PATCHDESC: Create a function that when run, pastes the clipboard text into the input box (for the old setter)
-code("gml_GlobalScript_cirqol_paste").ReplaceGML(@"
-function cirqol_paste() {
-    if clipboard_has_text()
-        keyboard_string = clipboard_get_text()
-}
-", Data);
-
-/// PATCHDESC: Create a function that when run, clears the input box (for the old setter)
-code("gml_GlobalScript_cirqol_clear").ReplaceGML(@"
-function cirqol_clear() {
-    keyboard_string = """"
-}
-", Data);
-
-/// PATCHDESC: Disable view controls while the setter window is open (for the old setter)
-ReplaceTextInASM("gml_Object_obj_le_viewhandler_Step_0", @"bf [70]", @"bf [70]
-pushref.i 114
-pushi.e -9
-push.v [stacktop]self.windowRelatedTo
-push.s ""cirqol_setter""
-cmp.s.v NEQ
-bf [70]", true);
-
-/// PATCHDESC: Disable button shortcuts while the setter window is open (for the old setter)
-ReplaceTextInGML("gml_GlobalScript_legui_step_button", @"(obj_le_gui.windowRelatedTo != ""save"")", @"
-(obj_le_gui.windowRelatedTo != ""save"") &&
-(obj_le_gui.windowRelatedTo != ""cirqol_setter"")
-", true);
-
-/// PATCHDESC: Creates a new function that shows the setter window (for the old setter)
-code("gml_GlobalScript_cirqol_showsetter").ReplaceGML(@"
-function cirqol_showsetter(argument0, argument1) {
-    with obj_le_gui {
-        global.cirqol_tempbutton = argument1
-        global.prevWindow = window
-        global.prevWindowRelatedTo = windowRelatedTo
-        window = -1
-        windowRelatedTo = undefined
-        if ((windowRelatedTo == ""cirqol_setter"")) {
-            legui_destroy_window()
-            return;
-        }
-        legui_create_basic_window(""Enter a new value"")
-        windowRelatedTo = ""cirqol_setter""
-        legui_window_add_element(legui_create_input_field("""", 320))
-        keyboard_string = string(argument0)
-        legui_window_add_spacing()
-        global.hackedEditorWindowToolbar = legui_create_toolbar()
-        legui_toolbar_add_button(global.hackedEditorWindowToolbar, legui_create_text_button(""Paste"", undefined, undefined, gml_Script_cirqol_paste, undefined, 155, ""Pastes whatever you have copied to the clipboard""))
-        legui_toolbar_add_spacing_auto(global.hackedEditorWindowToolbar, 155)
-        legui_toolbar_add_button(global.hackedEditorWindowToolbar, legui_create_text_button(""Set"", undefined, undefined, gml_Script_cirqol_confirmsetter, undefined, 155, """"))
-        legui_window_add_element(global.hackedEditorWindowToolbar)
-        legui_window_add_spacing()
-        legui_window_add_element(legui_create_text_button(""Cancel"", undefined, undefined, gml_Script_cirqol_cancelsetter, undefined, 320, """"))
-        legui_reposition_window()
-    }
-}
-", Data);
-
-/// PATCHDESC: Makes it so that the setter button actually shows the setter window instead of just adding 0 (for the old setter)
-ReplaceTextInASM("gml_GlobalScript_legui_update_variable", @"pushloc.v local.newValue
-push.d -0.0001
-cmp.d.v GT
-bf [7]", @"
-push.s ""promptOverride""
-conv.s.v
-pushloc.v local.button
-call.i ds_map_find_value(argc=2)
-conv.v.b
-bf [39999]
-
-:[29999]
-pushloc.v local.button
-pushloc.v local.currentValue
-call.i gml_Script_cirqol_showsetter(argc=2)
-popz.v
-
-:[39999]
-
-pushloc.v local.newValue
-push.d -0.0001
-cmp.d.v GT
-bf [7]", true);
-
-});
-
 newPatch("+e-flashing-underscore", "Editor: Make text inputs have a flashing underscore", ()=>{
     /// PATCHDESC: Make sure that current_time exists
     /// TODO: Do this with all newly defined variables, dont just rely on GML to auto define them
@@ -719,6 +537,51 @@ ret.v", @"pushbltn.v builtin.current_time
 });
 
 newPatch("e-inputbox-morevals", "Editor: Allow typing E notation into the Set... window", ()=>{
+    
+    /// PATCHDESC: Replace the real value checker to be able to use e notation, infinity, negative infinity, and NaN, allows the editor to handle such values and the setter to receive them
+    code("gml_GlobalScript_is_valid_real").ReplaceGML(@"
+    function is_valid_real() //gml_Script_is_valid_real
+    {
+        if is_real(argument0)
+            return 1;
+        var n = string_length(argument0)
+        if ((n == 0))
+            return 0;
+        var c = string_char_at(argument0, 1)
+        if ((c == ""+"") || (c == ""-""))
+            var i = 2
+        else
+            i = 1
+        var dot = 0
+        var e = 0
+        var firsttime = 1
+        while ((i <= n))
+        {
+            c = string_char_at(argument0, i)
+            if ((c == ""e""))
+            {
+                if (e || firsttime)
+                    return 0;
+                e = 1
+            }
+            else if ((c == "".""))
+            {
+                if dot
+                    return 0;
+                dot = 1
+            }
+            else
+            {
+                firsttime = 0
+                if ((ord(c) < 48) || (ord(c) > 57))
+                    return 0;
+            }
+            i += 1
+        }
+        return 1;
+    }
+    ", Data);
+
     ReplaceTextInASM("gml_GlobalScript_legui_create_input_field", @"pushloc.v local.char
 push.s "".""@*<refDot*
 cmp.s.v NEQ
@@ -789,6 +652,129 @@ push.v self.type
 pushi.e 2", @":[247]
 push.v self.type
 pushi.e 9999", true);
+});
+
+newPatch("ex-e-custom-object", "[Experimental] Editor: Add a custom object for testing inserting levelcodes", ()=>{
+    UndertaleGameObject obj_le_levelcode = new UndertaleGameObject();
+    obj_le_levelcode.Name = Data.Strings.MakeString("obj_le_levelcode");
+    obj_le_levelcode.ParentId = Data.GameObjects.ByName("obj_le_par_levelelement");
+    int numericID = Data.GameObjects.Count;
+    Data.GameObjects.Add(obj_le_levelcode);
+    ReplaceTextInGML("gml_GlobalScript_legui_create_toolbar_joints", "legui_toolbar_act_first_button(toolbar_secondary)", @"
+    legui_toolbar_add_button(toolbar_secondary, legui_create_tool_button(spr_collectcircleicon_special, -1, ""Create a Custom Object"", -1, 1))
+    legui_toolbar_act_first_button(toolbar_secondary)
+    ", true);
+    string obj_le_edittool_Step = GetASM(code("gml_Object_obj_le_edittool_Step_0"));
+    obj_le_edittool_Step = GetPassBack(obj_le_edittool_Step, @":[*<A*]
+pushref.i 121
+push.v self.depth_cur
+neg.v
+pushbltn.v builtin.mouse_y
+pushbltn.v builtin.mouse_x
+call.i instance_create_depth(argc=4)
+pushi.e -9
+pushenv [*<B*]
+
+:[*<C*]", @":[*A*]
+pushref.i 121
+push.v self.depth_cur
+neg.v
+pushbltn.v builtin.mouse_y
+pushbltn.v builtin.mouse_x
+call.i instance_create_depth(argc=4)
+pushi.e -9
+pushenv [*B*]
+b [*C*]
+
+:[A]
+pushref.i "+numericID+@"
+push.v self.depth_cur
+neg.v
+pushbltn.v builtin.mouse_y
+pushbltn.v builtin.mouse_x
+call.i instance_create_depth(argc=4)
+pushi.e -9
+pushenv [*B*]
+
+:[*C*]", true);
+obj_le_edittool_Step = GetPassBack(obj_le_edittool_Step, @":[*<A*]
+dup.v 0
+pushi.e 29
+cmp.i.v EQ
+bt [*<B*]
+
+:[*<C*]
+b [*<D*]", @":[*A*]
+dup.v 0
+pushi.e 29
+cmp.i.v EQ
+bt [*B*]
+
+:[B]
+dup.v 0
+pushi.e -1
+cmp.i.v EQ
+bt [A]
+
+:[*C*]
+b [*D*]", true);
+SetASM(code("gml_Object_obj_le_edittool_Step_0"), obj_le_edittool_Step);
+
+obj_le_levelcode.EventHandlerFor(EventType.Draw, Data).ReplaceGML(@"
+draw_set_color(c_red)
+draw_circle_fix(x, y, 10 / obj_le_viewhandler.view_scale, 0)
+draw_set_color(c_white)
+draw_circle_fix(x, y, 8 / obj_le_viewhandler.view_scale, 0)
+legui_draw_tooltip_mobile(x, y)
+", Data);
+
+GMLFunction(@"
+function le_check_point_in_this_levelcode(argument0, argument1)
+{
+    return point_in_circle(argument0, argument1, x, y, (10 / obj_le_viewhandler.view_scale));
+}
+");
+
+GMLFunction(@"
+function le_position_is_within_box_levelcode(argument0, argument1, argument2, argument3)
+{
+    return rectangle_in_circle(argument0, argument1, argument2, argument3, x, y, (10 / obj_le_viewhandler.view_scale));
+}
+");
+
+UndertaleCode create = obj_le_levelcode.EventHandlerFor(EventType.Create, Data);
+
+SetASM(create, @"
+:[0]
+
+call.i event_inherited(argc=0)
+popz.v
+
+push.s ""This is a custom object!""
+conv.s.v
+pop.v.v self.tooltipTextMobileL1
+
+push.i gml_Script_le_position_is_within_box_levelcode
+conv.i.v
+pushi.e -1
+conv.i.v
+call.i method(argc=2)
+pop.v.v self.position_is_within_box
+push.i gml_Script_le_check_point_in_this_levelcode
+conv.i.v
+pushi.e -1
+conv.i.v
+call.i method(argc=2)
+pop.v.v self.is_point_in_func
+
+push.i gml_Script_anon@5221@gml_Object_obj_le_collectcircle_Create_0
+conv.i.v
+pushi.e -1
+conv.i.v
+call.i method(argc=2)
+pop.v.v self.modifyPosition
+");
+
 });
 
 newPatch("ex-q-settings", "[Experimental] Add a cirQOL button to the main menu with related settings", ()=>{

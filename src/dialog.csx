@@ -234,7 +234,6 @@ You can customize the patches that get applied below, or just hit 'Patch!' to ap
     // Adds the string if the text box has data in it.
     async public void AcceptButton_Click(object sender, System.EventArgs e)
     {
-        if (this.patchlist_ui.CheckedItems.Count == 0) return;
         UndertaleData Data = this.Data;
         string circloO_path = Regex.Replace(this.circloO_filepath, @"(.+/).+\.win", "$1");
         string backupsPath = circloO_path + "backups/";
@@ -285,11 +284,11 @@ You can customize the patches that get applied below, or just hit 'Patch!' to ap
             }
         } else {
             if (!File.Exists(backupName)) {
-                if (shouldcontinue = doWarnings(this.Question("Would you like to automatically create a backup of your game? It is recommended that you hit yes so the tool can automatically revert the changes if need be.", "Create backup?"))) {
+                if (shouldcontinue = this.Question("Would you like to automatically create a backup of your game? It is recommended that you hit yes so the tool can automatically revert the changes if need be.", "Create backup?")) {
                     File.Copy(circloO_filepath, backupName, true);
-                    hasbackup = true;
-                }
+                } else return;
             }
+            shouldcontinue = doWarnings(hasbackup = true);
         }
 
         if (!shouldcontinue) return;
@@ -392,14 +391,6 @@ Thanks Ewoly for the name idea because quite frankly naming this thing 'circloO 
 
     // when checked
     public void itemCheck(object sender, ItemCheckEventArgs e) {
-        int change = e.NewValue == CheckState.Checked ? 1 : -1;
-        try {
-            if (this.isinput) this.installMode_ui.ClearSelected();
-        } catch (Exception error) {
-
-        }
-        bool enableAcceptButton = this.patchlist_ui.CheckedItems.Count + change > 0;
-        this.AcceptButton.Enabled = true;
-        this.styleButtonGreen(this.AcceptButton, false);
+        
     }
 }

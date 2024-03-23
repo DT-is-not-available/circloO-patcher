@@ -108,6 +108,32 @@ void ReplaceTextInASM(string codeName, string keyword, string replacement, bool 
 
     ReplaceTextInASM(code, keyword, replacement, caseSensitive, isRegex, context);
 }
+string GetASM(UndertaleCode code, GlobalDecompileContext context = null)
+{
+    EnsureDataLoaded();
+
+    string passBack = "";
+    string codeName = code.Name.Content;
+    GlobalDecompileContext DECOMPILE_CONTEXT = context is null ? new(Data, false) : context;
+    
+    if (code is null)
+        throw new Exception("Null code");
+    return code.Disassemble(Data.Variables, Data.CodeLocals.For(code));
+}
+void SetASM(UndertaleCode code, string passBack) {
+    try
+    {
+    var instructions = Assembler.Assemble(passBack, Data);
+    code.Replace(instructions);
+    }
+    catch (Exception exc)
+    {
+        if (ScriptQuestion("Error during ASM code replacement:\n" + exc.ToString() + "\n\nCopy passback?")) {
+            Clipboard.SetText(passBack);
+        };
+        throw new Exception("a");
+    }
+}
 void ReplaceTextInASM(UndertaleCode code, string keyword, string replacement, bool caseSensitive = false, bool isRegex = false, GlobalDecompileContext context = null)
 {
     if (code.ParentEntry is not null)
@@ -149,9 +175,17 @@ string Disassemble(UndertaleCode code) {
 UndertaleCode code(string codeName, bool makeIfNotExists = true) {
     UndertaleCode c = Data.Code.ByName(codeName);
     if (c == null && makeIfNotExists) {
+        UndertaleCodeLocals l = new UndertaleCodeLocals();
+        l.Name = Data.Strings.MakeString(codeName);
         c = new UndertaleCode();
-        c.Name = Data.Strings.MakeString(codeName);
+        c.Name = l.Name;
         Data.Code.Add(c);
+        Data.CodeLocals.Add(l);
     }
     return c;
+}
+void GMLFunction(string scode) {
+    string funcname = Regex.Match(scode, @"^\s*function\s*(\w+)").Groups[1].Value;
+    string filename = "gml_GlobalScript_"+funcname;
+    code(filename).ReplaceGML(scode, Data);
 }

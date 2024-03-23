@@ -1,6 +1,6 @@
-const string VERSION = "v1.6.3";
+const string VERSION = "v1.7.0";
 const string CIRCLOO_VERSION = "1.11";
-const int ISBETA = 3;
+const int ISBETA = 0;
 const bool DEBUGMODE = false;
 
 const string CONFIRMTEXT = "Are you sure you would like to apply these patches?";
