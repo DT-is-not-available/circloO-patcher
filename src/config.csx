@@ -1,7 +1,7 @@
 const string VERSION = "v1.7.1";
 const string CIRCLOO_VERSION = "1.11";
 const int ISBETA = 0;
-const bool DEBUGMODE = false;
+const bool DEBUGMODE = true;
 
 const string CONFIRMTEXT = "Are you sure you would like to apply these patches?";
 const string WARNTEXT = "You are about to apply patches to your game file. Please create a backup of your circloO file before you do this, as these changes currently cannot be undone without a backup! Are you sure you want to continue?";

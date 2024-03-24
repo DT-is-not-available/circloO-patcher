@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const project = require("./project.json");
+const project = require(`./${process.argv[2] || "project"}.json`);
 
 try {
     fs.mkdirSync(path.dirname(project.outfile), {recursive: true});

@@ -27,7 +27,7 @@ public partial class cirQOLdialog : System.Windows.Forms.Form
     public List<string> presets;
     public List<bool> requiredpatch;
     public List<List<string>> presetpatches;
-    public bool isinput;
+    public bool isinput = false;
     public int offset;
     public string circloO_filepath;
     public UndertaleData Data;

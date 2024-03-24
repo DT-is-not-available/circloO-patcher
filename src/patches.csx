@@ -484,12 +484,13 @@ newPatch("+e-flashing-underscore", "Editor: Make text inputs have a flashing und
     ReplaceTextInASM("gml_GlobalScript_legui_create_input_field", @"pushbltn.v builtin.keyboard_string
 ret.v", @"
     #{
-        if (current_time % 500) > 250
+        if (current_time % 500) > 250 {
             return keyboard_string + ""_"";
+        } else {
+            return keyboard_string
+        }
     }
-    
-    pushbltn.v builtin.keyboard_string
-    ret.v", true);
+    ", true);
 });
 
 newPatch("e-inputbox-morevals", "Editor: Allow typing E notation into the Set... window", ()=>{
