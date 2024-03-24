@@ -6,9 +6,14 @@
 #load "dialog.csx"
 
 using System;
+using System.Text;
 using System.Data;
 using System.IO;
 using System.Windows.Forms;
+using System.Collections.ObjectModel;
+
+using UndertaleModLib.Compiler;
+using UndertaleModLib.Decompiler;
 
 /*
     BIG LIST OF TODOS:
@@ -67,12 +72,109 @@ string GetReplacerRegex(string keyword) {
     );
 }
 
-string GetReplacementRegex(string replacement) {
+string GetReplacementValue(string replacement) {
     return Regex.Replace(
         Regex.Replace(
             replacement.Replace("$", "$$"), @"^[^\S\n]+|[^\S\n]+$", "", RegexOptions.Multiline
         ), @"\*(\w+)\*", "$${$1}", RegexOptions.Multiline
     );
+}
+
+List<uint> FindBlockAddresses(IList<UndertaleInstruction> instructions) {
+    List<uint> addresses = new List<uint>();
+
+    if (instructions.Count != 0)
+        addresses.Add(0);
+
+    foreach (var inst in instructions)
+    {
+        switch (inst.Kind)
+        {
+            case UndertaleInstruction.Opcode.B:
+            case UndertaleInstruction.Opcode.Bf:
+            case UndertaleInstruction.Opcode.Bt:
+            case UndertaleInstruction.Opcode.PushEnv:
+                addresses.Add(inst.Address + 1);
+                addresses.Add((uint)(inst.Address + inst.JumpOffset));
+                break;
+            case UndertaleInstruction.Opcode.PopEnv:
+                if (!inst.JumpOffsetPopenvExitMagic)
+                    addresses.Add((uint)(inst.Address + inst.JumpOffset));
+                break;
+            case UndertaleInstruction.Opcode.Exit:
+            case UndertaleInstruction.Opcode.Ret:
+                addresses.Add(inst.Address + 1);
+                break;
+        }
+    }
+
+    addresses.Sort();
+    return addresses;
+}
+
+int sub = 0;
+string CompileGMLFragments(string hybrid, UndertaleCode code) {
+    return Regex.Replace(hybrid, @"#{((?>(?!{|}).|{(?<Depth>)|}(?<-Depth>))*)(?(Depth)(?!))}", new MatchEvaluator(new Func<Match, string> ((Match m) => {
+        UndertaleCodeLocals locals = Data.CodeLocals.For(code);
+        ObservableCollection<UndertaleCodeLocals.LocalVar> prevlocals = new ObservableCollection<UndertaleCodeLocals.LocalVar> (locals.Locals);
+        IList<UndertaleInstruction> instructions = CompGML(m.Groups[1].Value, code);
+        for (int i = 0; i < prevlocals.Count; i++) {
+            if (locals.Locals.IndexOf(prevlocals[i]) == -1) locals.Locals.Add(prevlocals[i]);
+        }
+
+        StringBuilder sb = new StringBuilder(200);
+
+        Dictionary<uint, string> fragments = new(code.ChildEntries.Count);
+        foreach (var dup in code.ChildEntries)
+        {
+            fragments.Add(dup.Offset / 4, (dup.Name?.Content ?? "<null>") + $" (locals={dup.LocalsCount}, argc={dup.ArgumentsCount})");
+        }
+
+        List<uint> blocks = FindBlockAddresses(instructions);
+
+        foreach (var inst in instructions)
+        {
+            bool doNewline = true;
+            if (fragments.TryGetValue(inst.Address, out string entry))
+            {
+                sb.AppendLine();
+                sb.AppendLine($"> {entry}");
+                doNewline = false;
+            }
+
+            int ind = blocks.IndexOf(inst.Address);
+            if (ind != -1)
+            {
+                if (doNewline)
+                    sb.AppendLine();
+                sb.AppendLine($":[sub{sub}_{ind}]");
+            }
+
+            string inst_str = inst.ToString(code, blocks);
+            if (inst_str[0] == 'b') inst_str = inst_str.Replace("[", $"[sub{sub}_");
+            sb.Append(inst_str);
+
+            sb.Append(Environment.NewLine);
+        }
+
+        sub++;
+
+        return sb.ToString();
+    })), RegexOptions.Singleline);
+}
+
+IList<UndertaleInstruction> CompGML(string source, UndertaleCode code) {
+    CompileContext context = Compiler.CompileGMLText(source, Data, code);
+    if (!context.SuccessfulCompile || context.HasError)
+    {
+        Console.WriteLine(source);
+        throw new Exception("GML Compile Error: " + context.ResultError + "\n----\n" + source);
+    }
+
+    foreach (KeyValuePair<string, string> v in context.GlobalVars)
+        Data.Variables.EnsureDefined(v.Key, UndertaleInstruction.InstanceType.Global, false, Data.Strings, Data);
+
+    return context.ResultAssembly;
 }
 
 string GetPassBack(string decompiled_text, string keyword, string replacement, bool case_sensitive = false, bool isRegex = false)
@@ -85,11 +187,11 @@ string GetPassBack(string decompiled_text, string keyword, string replacement, b
     {
         if (DEBUGMODE) ScriptMessage(GetReplacerRegex(keyword));
         if (DEBUGMODE) Clipboard.SetText(GetReplacerRegex(keyword));
-        if (DEBUGMODE) ScriptMessage(GetReplacementRegex(replacement));
+        if (DEBUGMODE) ScriptMessage(GetReplacementValue(replacement));
         if (case_sensitive)
-            passBack = Regex.Replace(decompiled_text, GetReplacerRegex(keyword), GetReplacementRegex(replacement), RegexOptions.None);
+            passBack = Regex.Replace(decompiled_text, GetReplacerRegex(keyword), GetReplacementValue(replacement), RegexOptions.None);
         else
-            passBack = Regex.Replace(decompiled_text, GetReplacerRegex(keyword), GetReplacementRegex(replacement), RegexOptions.IgnoreCase);
+            passBack = Regex.Replace(decompiled_text, GetReplacerRegex(keyword), GetReplacementValue(replacement), RegexOptions.IgnoreCase);
     }
     else
     {
@@ -98,6 +200,8 @@ string GetPassBack(string decompiled_text, string keyword, string replacement, b
         else
             passBack = Regex.Replace(decompiled_text, keyword, replacement, RegexOptions.IgnoreCase);
     }
+    if (DEBUGMODE) ScriptMessage("PB\n\n"+passBack);
+    if (DEBUGMODE) Clipboard.SetText(passBack);
     return passBack;
 }
 void ReplaceTextInASM(string codeName, string keyword, string replacement, bool caseSensitive = false, bool isRegex = false, GlobalDecompileContext context = null)
@@ -118,7 +222,12 @@ string GetASM(UndertaleCode code, GlobalDecompileContext context = null)
     
     if (code is null)
         throw new Exception("Null code");
-    return code.Disassemble(Data.Variables, Data.CodeLocals.For(code));
+    string decompiled_text = Disassemble(code);
+    
+    if (DEBUGMODE) ScriptMessage("DT\n\n"+decompiled_text);
+    if (DEBUGMODE) Clipboard.SetText(decompiled_text);
+
+    return decompiled_text;
 }
 void SetASM(UndertaleCode code, string passBack) {
     try
@@ -136,38 +245,10 @@ void SetASM(UndertaleCode code, string passBack) {
 }
 void ReplaceTextInASM(UndertaleCode code, string keyword, string replacement, bool caseSensitive = false, bool isRegex = false, GlobalDecompileContext context = null)
 {
-    if (code.ParentEntry is not null)
-        return;
-
-    EnsureDataLoaded();
-
-    string passBack = "";
-    string codeName = code.Name.Content;
-    GlobalDecompileContext DECOMPILE_CONTEXT = context is null ? new(Data, false) : context;
-
-    try
-    {
-        // It would just be recompiling an empty string and messing with null entries seems bad
-        if (code is null)
-            return;
-        string originalCode = code.Disassemble(Data.Variables, Data.CodeLocals.For(code));
-        // ScriptMessage(originalCode.Substring(0, 1000));
-        passBack = GetPassBack(originalCode, keyword, replacement, caseSensitive, isRegex);
-        // No need to compile something unchanged
-        if (passBack == originalCode) {
-            ScriptMessage("its the same");
-            return;
-        }
-        var instructions = Assembler.Assemble(passBack, Data);
-        code.Replace(instructions);
-    }
-    catch (Exception exc)
-    {
-        if (ScriptQuestion("Error during ASM code replacement:\n" + exc.ToString() + "\n\nCopy passback?")) {
-            Clipboard.SetText(passBack);
-        };
-        throw new Exception("a");
-    }
+    string f = CompileGMLFragments(replacement, code);
+    if (DEBUGMODE) ScriptMessage("ASDF\n\n"+f);
+    if (DEBUGMODE) Clipboard.SetText(f);
+    SetASM(code, GetPassBack(GetASM(code, context), keyword, f, caseSensitive, isRegex));
 }
 string Disassemble(UndertaleCode code) {
     return code.Disassemble(Data.Variables, Data.CodeLocals.For(code));

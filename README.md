@@ -39,14 +39,14 @@ I currently have 2 separate to-do lists: one for the tool and one for cirQOL. Ea
 
 ### cirQOL TODO list
 
-- [ ] Modify the patches that replace assembly to use the matching patterns instead of actual label numbers, that way the chance of patches breaking on a game update is minimal
-- [ ] Figure out how to automatically define locals for code entries so that local variables can be used
-- [ ] Remove as many global variables from the patches as possible
+- [x] Modify the patches that replace assembly to use the matching patterns instead of actual label numbers, that way the chance of patches breaking on a game update is minimal
+- [x] Figure out how to automatically define locals for code entries so that local variables can be used
+- [x] Remove as many global variables from the patches as possible
+- [x] Add a restitution option to the player
 - [ ] Move the 'run level from clipboard', 'copy level from clipboard', and 'open level in editor' to Ctrl+Shift+V (in menus), Ctrl+Shift+C (in a level), and F5 (in a level) respectively
 - [ ] Make the 'open level in editor' hotkey automatically load it in the correct editor save if it is a local level so that you do not wind up with hundreds of saves
 - [ ] Make Ctrl+Shift+V (in the editor) load the level from your clipboard and Ctrl+Shift+C (in the editor) export to clipboard
-- [ ] Make it possible to set values to nan and inf again, as well as `5e-324` (the smallest floating point value possible without being 0)
-- [ ] Change the display of 
+- [ ] ~~Make it possible to set values to nan and inf again, as well as `5e-324` (the smallest floating point value possible without being 0)~~ Incompatible with vanilla
 - [ ] Get rid of the currently required `cirQOL` 'patch', move the startup notification to the F1 menu patch
 - [ ] Fix square level drawing when 'Start Full' is enabled
 - [ ] Make level shape and gravity control mode import correctly back into the editor (requires editing the switch-case in assembly, it's probably easy I'm just putting it off)
@@ -64,16 +64,15 @@ I currently have 2 separate to-do lists: one for the tool and one for cirQOL. Ea
 ### cirQOL wishlist
 
 - [ ] Make heart-shaped levels draw correctly in the editor
-- [ ] Change the outside of the level to be the same color as the background and draw a level border instead (so that you can see collectibles and other things outside the level border)
+- [ ] Change the outside of the level to be the same color as the background and draw a level border instead (so that you can see collectables and other things outside the level border)
 - [ ] Add UI ingame for setting gravity control mode and level shape, remove those hotkeys
-- [ ] Add a restitution option to the player
 - [ ] Add the option to make the player square
 - [ ] Add the 'make object use improved physics' option to all moving objects, not just the player
-- [ ] Make whether the collectible activates on touching an object a toggleable option
+- [ ] Make whether the collectable activates on touching an object a toggleable option
 - [ ] Add a position editor for rope offsets
 - [ ] Add a new 'no collision' connection (disables collision between the two objects connected)
 - [ ] Add a new 'weld objects' connection (similar to glue but not as rigid)
 - [ ] Add a property to every level editor object called 'destroy after' which specifies after what level of circle expansion should the object destroy itself
-- [ ] Add a property to collectibles to ignore collectible ordering, and whether or not to expand the circle
+- [ ] Add a property to collectables to ignore collectable ordering, and whether or not to expand the circle
 - [ ] Add a property to every level editor object called a 'tag', which is visible on hover or when ALT is pressed
 - [ ] Add a menu to locate objects by tag

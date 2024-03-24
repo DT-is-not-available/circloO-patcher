@@ -32,7 +32,25 @@ List<string> GeneralHotkeyHelp = new List<string> {};
 List<string> EditorHotkeyHelp = new List<string> {"F5 - Test level"};
 List<string> LevelHotkeyHelp = new List<string> {"F3 - Copy level ID (user level only)", "F6 - Toggle fixed view"};
 
-newPatch("b-req", "cirQOL", ()=>{
+newPatch("b-req", "cirQOL + Utils", ()=>{
+
+GMLFunction(@"
+function v_true() {
+    return true
+}
+");
+
+GMLFunction(@"
+function v_false() {
+    return false
+}
+");
+
+GMLFunction(@"
+    function methodify(argument0) {
+        return method(-1, argument0)
+    }
+");
 
 /// PATCHDESC: Shows the startup message
 code("gml_Object_obj_notification_Create_0").AppendGML(@"
@@ -41,11 +59,8 @@ notification_set(""cirQOL "+VERSION+" loaded with "+selectedPatches.Count+(selec
 
 /// PATCHDESC: Initializes (and automatically defines) any global variables. Some of these only exist because I cant create new locals (hopefully lua can fix this)
 code("gml_GlobalScript_0").AppendGML(@"
-global.hacked_editor = true
 global.show_hitboxes = false
 global.make_collectables_draw_smaller = false
-global.temp = 0
-global.target_instance = 0
 global.animationoverride = false
 ", Data);
 
@@ -84,6 +99,10 @@ popz.v", true);
 });
 
 newPatch("e-restitution", "Editor: Add restitution to the player and circles", ()=>{
+    ReplaceTextInASM("gml_Object_obj_le_collectcircle_Create_0", @"pushbltn.v builtin.undefined
+pop.v.v self.restitution", @"#{
+    self.restitution = 0
+}", true);
     GMLFunction(@"
         function le_restitution_set(argument0) {
             restitution = argument0
@@ -102,26 +121,9 @@ push.s ""Density - how heavy this is: {}""@*A*
 conv.s.v
 call.i gml_Script_legui_add_variable_update_to_window(argc=6)
 popz.v
-pushi.e 1
-conv.i.v
-push.d 0
-conv.d.v
-pushi.e 2
-conv.i.v
-push.i gml_Script_le_restitution_set
-conv.i.v
-pushi.e -1
-conv.i.v
-call.i method(argc=2)
-push.i gml_Script_le_restitution_get
-conv.i.v
-pushi.e -1
-conv.i.v
-call.i method(argc=2)
-push.s ""Restitution - how bouncy this is: {}""
-conv.s.v
-call.i gml_Script_legui_add_variable_update_to_window(argc=6)
-popz.v
+#{
+    legui_add_variable_update_to_window(""Restitution - how bouncy this is: {}"", methodify(gml_Script_le_restitution_get), methodify(gml_Script_le_restitution_set), 2, 0, 1)
+}
 ", true);
 bool DONEWCIRCLES = false;
 if (DONEWCIRCLES) ReplaceTextInASM("gml_Object_obj_le_circle_Create_0", @":[0]
@@ -184,23 +186,11 @@ newPatch("e-level-shape", "Editor: Change the shape of the level with F2", ()=>{
     ", Data);
 
     /// PATCHDESC: Makes the heart shape export correctly from the level editor
-    ReplaceTextInASM("gml_Object_obj_le_exporter_Create_0", ":[end]", @"
-    pushref.i 111
-    pushi.e -9
-    push.v [stacktop]self.levelShape
-    pushi.e 2
-    cmp.i.v EQ
-    bf [9999]
-
-    :[9998]
-    push.s ""shapeHeart""
-    conv.s.v
-    call.i gml_Script_le_export_add(argc=1)
-    popz.v
-
-    :[9999]
-    
-    :[end]", true);
+    code("gml_Object_obj_le_exporter_Create_0").AppendGML(@"
+        if (obj_leveleditor.levelShape == 2) {
+            gml_Script_le_export_add(""shapeHeart"")
+        }
+    ", Data);
 });
 
 newPatch("e-control-gravity", "Editor: Toggle the control gravity gamemode with F3", ()=>{
@@ -222,22 +212,11 @@ newPatch("e-control-gravity", "Editor: Toggle the control gravity gamemode with 
     code("gml_Object_obj_leveleditor_Create_0").AppendGML("controlGravity = 0", Data);
 
     /// PATCHDESC: Makes controlGravity export correctly from the level editor
-    ReplaceTextInASM("gml_Object_obj_le_exporter_Create_0", ":[end]", @":[99999]
-    pushref.i 111
-    pushi.e -9
-    push.v [stacktop]self.controlGravity
-    pushi.e 1
-    cmp.i.v EQ
-    bf [9999]
-
-    :[9998]
-    push.s ""gravcontrol""
-    conv.s.v
-    call.i gml_Script_le_export_add(argc=1)
-    popz.v
-
-    :[9999]
-    :[end]", true);
+    code("gml_Object_obj_le_exporter_Create_0").AppendGML(@"
+        if (obj_leveleditor.controlGravity == 2) {
+            gml_Script_le_export_add(""gravcontrol"")
+        }
+    ", Data);
 });
 
 newPatch("e-fixed-draw", "Editor: Holding ALT will resize collectables to be a fixed size", ()=>{
@@ -367,27 +346,10 @@ newPatch("q-cr", "Show clear rates above each level", ()=>{
     :[*<B*]", @":[*A*]
     push.i *something*
     setowner.e
-    pushloc.v local.thisLevel
-    pushi.e -9
-    push.v [stacktop]self.plays
-    pushloc.v local.thisLevel
-    pushi.e -9
-    push.v [stacktop]self.starts
-    div.v.v
-    push.i 100000
-    mul.i.v
-    call.i ceil(argc=1)
-    pushi.e 1000
-    conv.i.d
-    div.d.v
-    call.i string(argc=1)
-    push.s  ""% CR""
-    conv.s.v
-    add.v.v
-    pushi.e -1
-    pushloc.v local.i
-    conv.v.i
-    pop.v.v [array]self.menustatustext
+    #{
+        var thisLevel
+        menustatustext[i] = string(ceil(thisLevel.plays / thisLevel.starts * 10000) / 100) + ""% CR""
+    }
     
     :[*B*]", true);
 });
@@ -404,8 +366,9 @@ newPatch("q-copy-content", "Copy the current level data with F11", ()=>{
 
 newPatch("e-attractorprops", "Editor: Allow setting attractors to moving circles", ()=>{
     ReplaceTextInASM("gml_Object_obj_le_circle_Create_0", @"""Use Wheel Image""@*<ref*", @"""Use Wheel Image""@*ref*
-    call.i gml_Script_legui_add_attractor_update_to_window(argc=0)
-    popz.v", true);
+    #{
+        legui_add_attractor_update_to_window()
+    }", true);
 });
 
 newPatch("q-load-content", "Load clipboard as level data content with F9", ()=>{
@@ -517,21 +480,14 @@ newPatch("+e-flashing-underscore", "Editor: Make text inputs have a flashing und
     Data.Variables.EnsureDefined("current_time", UndertaleInstruction.InstanceType.Self, true, Data.Strings, Data);
 
     /// PATCHDESC: Make it so the input field has a flashing underscore after it
+
     ReplaceTextInASM("gml_GlobalScript_legui_create_input_field", @"pushbltn.v builtin.keyboard_string
-ret.v", @"pushbltn.v builtin.current_time
-    pushi.e 500
-    mod.i.v
-    pushi.e 250
-    cmp.i.v GT
-    bf [399]
-
-    :[299]
-    pushbltn.v builtin.keyboard_string
-    push.s ""_""
-    add.s.v
-    ret.v
-
-    :[399]
+ret.v", @"
+    #{
+        if (current_time % 500) > 250
+            return keyboard_string + ""_"";
+    }
+    
     pushbltn.v builtin.keyboard_string
     ret.v", true);
 });
@@ -744,28 +700,23 @@ function le_position_is_within_box_levelcode(argument0, argument1, argument2, ar
 
 UndertaleCode create = obj_le_levelcode.EventHandlerFor(EventType.Create, Data);
 
-SetASM(create, @"
-:[0]
+GMLFunction(@"
+function le_create_position_window() {
+    legui_create_basic_window(""Object Coordinates"")
+    legui_window_set_related_to(id, ""position"")
+    legui_add_x_update_to_window()
+    legui_add_y_update_to_window()
+    legui_finish_basic_window()
+}
+");
 
-call.i event_inherited(argc=0)
-popz.v
-
-push.s ""This is a custom object!""
-conv.s.v
-pop.v.v self.tooltipTextMobileL1
-
-push.i gml_Script_le_position_is_within_box_levelcode
-conv.i.v
-pushi.e -1
-conv.i.v
-call.i method(argc=2)
-pop.v.v self.position_is_within_box
-push.i gml_Script_le_check_point_in_this_levelcode
-conv.i.v
-pushi.e -1
-conv.i.v
-call.i method(argc=2)
-pop.v.v self.is_point_in_func
+SetASM(create, CompileGMLFragments(@"
+#{
+    event_inherited()
+    self.tooltipTextMobileL1 = ""This is a custom object!""
+    self.position_is_within_box = methodify(gml_Script_le_position_is_within_box_levelcode)
+    self.is_point_in_func = methodify(gml_Script_le_check_point_in_this_levelcode)
+}
 
 push.i gml_Script_anon@5221@gml_Object_obj_le_collectcircle_Create_0
 conv.i.v
@@ -773,7 +724,7 @@ pushi.e -1
 conv.i.v
 call.i method(argc=2)
 pop.v.v self.modifyPosition
-");
+", create));
 
 });
 
