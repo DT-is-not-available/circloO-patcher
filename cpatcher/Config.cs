@@ -1,4 +1,5 @@
-public partial class MainForm {
+public partial class Program {
+
     string Version = "0.1.0";
-    bool DebugMode = true;
+
 }

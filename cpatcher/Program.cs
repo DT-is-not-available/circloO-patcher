@@ -1,7 +1,6 @@
 #load "Config.cs"
 #load "Patch.cs"
 #load "Patches.cs"
-#load "MainForm.cs"
+#load "MainWindow.cs"
 
-new MainForm().ShowDialog();
-executeAllPatches();
+new MainWindow().ShowDialog();

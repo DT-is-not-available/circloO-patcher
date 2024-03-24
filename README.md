@@ -22,7 +22,7 @@ Since this is essentially just a script for UndertaleModTool, the build process 
 
 ## Contributing
 
-If you would like to contribute, please open a pull request.
+If you would like to contribute, please open a pull request. Currently I am trying to rewrite the entire patcher as it's own application that uses UndertaleModLib as a library, rather than being a script run through UndertaleModTool.
 
 ## TODOS
 
@@ -30,10 +30,7 @@ I currently have 2 separate to-do lists: one for the tool and one for cirQOL. Ea
 
 ### Patcher TODO list
 
-- [ ] Self contain all logic for the tool inside of the Form class like a real C# application
-- [ ] Clean up the source files to make them manageable
-- [ ] Update the patch configuration checkbox list to use custom components and a custom renderer, so that collapsible categories can be added
-- [ ] Replace the 'required patch' option with patch dependencies (for when loading one patch requires loading another)
+- [ ] Rewrite the entire thing (yup)
 - [ ] Create a simple file format for creating and storing custom patches and categories (probably similar to levelscript, circloO's level format)
 - [ ] Remove the built-in patches and put them in their own repository, and rename the tool (at this point cirQOL will inherit the version number, and the new tool will start at v1.0.0)
 
@@ -57,7 +54,6 @@ I currently have 2 separate to-do lists: one for the tool and one for cirQOL. Ea
 
 ### Patcher wishlist
 
-- [ ] Make the tool an actual application instead of an UndertaleModTool script, use UndertaleModLib instead.
 - [ ] Create an UndertaleModTool script that will be able to record changes made to the `data.win` and generate a patch file automatically to help ease the modding process.
 - [ ] Make the tool capable of undoing patches based on the patch file format without having to create and load backups of the vanilla game
 

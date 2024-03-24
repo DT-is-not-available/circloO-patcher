@@ -1,24 +1,25 @@
-using System; 
-using System.Collections.Generic; 
-using System.ComponentModel; 
-using System.Data; 
-using System.Drawing; 
-using System.Linq; 
-using System.Text; 
-using System.Threading.Tasks; 
-using System.Windows.Forms; 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
-using UndertaleModLib;
-
-public partial class MainForm : Form { 
+public partial class MainWindow : Form {
+    
+    bool DebugMode { get; set; };
   
-    public MainForm() 
-    {
+    public MainWindow() {
         this.ClientSize = new Size(630, 440);
         this.ShowIcon = false;
         this.Text = "cpatcher "+this.Version;
         this.CenterToScreen();
-        this.InitializeComponents(); 
+        this.InitializeComponents();
+
+        this.DebugMode = true;
     }
 
     bool Warn(string text, string title="Warning!") {
@@ -42,8 +43,8 @@ public partial class MainForm : Form {
         return button;
     }
   
-    void InitializeComponents() 
-    {
+    void InitializeComponents() {
+        // haha testing ui
         this.Controls.Add(this.OnClick(new Button {
             Text = "Hello there!",
             Size = new Size(100, 25),
@@ -51,5 +52,5 @@ public partial class MainForm : Form {
         }, delegate (object sender, EventArgs e) {
             this.Inform("This is an information box.", this.Text);
         }));
-    } 
+    }
 } 
