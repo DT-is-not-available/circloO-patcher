@@ -10,16 +10,18 @@ using System.Windows.Forms;
 
 public partial class MainWindow : Form {
     
-    bool DebugMode { get; set; };
+    bool DebugMode { get; set; }
   
     public MainWindow() {
         this.ClientSize = new Size(630, 440);
         this.ShowIcon = false;
         this.Text = "cpatcher "+this.Version;
         this.CenterToScreen();
-        this.InitializeComponents();
 
         this.DebugMode = true;
+        
+        this.InitializeComponents();
+        this.InitializePatches();
     }
 
     bool Warn(string text, string title="Warning!") {
