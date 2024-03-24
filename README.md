@@ -18,7 +18,9 @@ Currently the only patches you can apply are a collection of patches called cirQ
 Since this is essentially just a script for UndertaleModTool, the build process is fairly simple. You will need [Node.js](https://nodejs.org/en/download) (The minimum tested version is v20.11.1 but the build script should in theory run just fine on v16.20.2 or later). Building the script is as simple as running `node build` in the main directory. A few files to take note of:
 - `build.js` is the build script, essentially a custom-written preprocessor I wrote in an afternoon that just preprocesses C# script `#load` directives.
 - `src/` is where the source for the actual `cirQOL.csx` script is located.
+- `cpatcher/` is where the source for the rewrite of the patcher (`cpatcher.csx`) is located. (to build this one, run `node build cpatcher`)
 - `project.json` contains configuration for `build.js`. It is extremely simple, and there is no reason to complicate it further.
+- `cpatcher.json` contains configuration for the new patcher.
 
 ## Contributing
 
