@@ -346,10 +346,27 @@ newPatch("q-cr", "Show clear rates above each level", ()=>{
     :[*<B*]", @":[*A*]
     push.i *something*
     setowner.e
-    #{
-        var thisLevel
-        menustatustext[i] = string(ceil(thisLevel.plays / thisLevel.starts * 10000) / 100) + ""% CR""
-    }
+    pushloc.v local.thisLevel
+    pushi.e -9
+    push.v [stacktop]self.plays
+    pushloc.v local.thisLevel
+    pushi.e -9
+    push.v [stacktop]self.starts
+    div.v.v
+    push.i 100000
+    mul.i.v
+    call.i ceil(argc=1)
+    pushi.e 1000
+    conv.i.d
+    div.d.v
+    call.i string(argc=1)
+    push.s  ""% CR""
+    conv.s.v
+    add.v.v
+    pushi.e -1
+    pushloc.v local.i
+    conv.v.i
+    pop.v.v [array]self.menustatustext
     
     :[*B*]", true);
 });
@@ -482,15 +499,22 @@ newPatch("+e-flashing-underscore", "Editor: Make text inputs have a flashing und
     /// PATCHDESC: Make it so the input field has a flashing underscore after it
 
     ReplaceTextInASM("gml_GlobalScript_legui_create_input_field", @"pushbltn.v builtin.keyboard_string
-ret.v", @"
-    #{
-        if (current_time % 500) > 250 {
-            return keyboard_string + ""_"";
-        } else {
-            return keyboard_string
-        }
-    }
-    ", true);
+ret.v", @"pushbltn.v builtin.current_time
+    pushi.e 500
+    mod.i.v
+    pushi.e 250
+    cmp.i.v GT
+    bf [399]
+
+    :[299]
+    pushbltn.v builtin.keyboard_string
+    push.s ""_""
+    add.s.v
+    ret.v
+
+    :[399]
+    pushbltn.v builtin.keyboard_string
+    ret.v", true);
 });
 
 newPatch("e-inputbox-morevals", "Editor: Allow typing E notation into the Set... window", ()=>{
