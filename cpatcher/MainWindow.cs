@@ -46,13 +46,17 @@ public partial class MainWindow : Form {
     }
   
     void InitializeComponents() {
-        // haha testing ui
-        this.Controls.Add(this.OnClick(new Button {
-            Text = "Hello there!",
-            Size = new Size(100, 25),
-            Location = new Point(10, 10),
-        }, delegate (object sender, EventArgs e) {
-            this.Inform("This is an information box.", this.Text);
-        }));
+
+        Button PatchButton = new Button {
+            Text = "Patch!",
+            Size = new Size(100, 32),
+            Dock = DockStyle.Bottom,
+        };
+        PatchButton.Click += delegate (object sender, EventArgs e) {
+            this.Inform("lmao", this.Text);
+        };
+        
+        this.Controls.Add(PatchButton);
+
     }
 } 
