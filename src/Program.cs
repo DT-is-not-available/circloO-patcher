@@ -1,3 +1,5 @@
+using UndertaleModLib;
+
 namespace cpatcher;
 
 static class Program

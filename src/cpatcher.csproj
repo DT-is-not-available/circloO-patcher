@@ -3,11 +3,19 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <BaseOutputPath>../bin</BaseOutputPath>
     <BaseIntermediateOutputPath>../obj</BaseIntermediateOutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="UndertaleModLib">
+      <HintPath>..\UndertaleModTool\UndertaleModLib\bin\Debug\net6.0\publish\UndertaleModLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   
 </Project>
