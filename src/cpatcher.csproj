@@ -13,9 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="UndertaleModLib">
-      <HintPath>..\UndertaleModTool\UndertaleModLib\bin\Debug\net6.0\publish\UndertaleModLib.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\UndertaleModTool\UndertaleModLib\UndertaleModLib.csproj" />
   </ItemGroup>
   
 </Project>
