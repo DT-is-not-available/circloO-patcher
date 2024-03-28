@@ -8,8 +8,12 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <BaseOutputPath>../bin</BaseOutputPath>
-    <BaseIntermediateOutputPath>../obj</BaseIntermediateOutputPath>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <!-- without this thing it would cause some publishing/building issues -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- i think it would be better to have the compiled application in the src/ directory, not in the root of repo -->
+    <!--<BaseOutputPath>../bin</BaseOutputPath>
+    <BaseIntermediateOutputPath>../obj</BaseIntermediateOutputPath>-->
   </PropertyGroup>
 
   <ItemGroup>

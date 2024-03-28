@@ -1,16 +1,12 @@
-﻿namespace cpatcher
+﻿using System.Windows.Forms;
+using System.ComponentModel;
+
+namespace cpatcher
 {
     partial class MainWindow
     {
-        /// <summary>
-        ///  Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        ///  Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -20,12 +16,6 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
-        /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             TreeNode treeNode1 = new TreeNode("Experimental");
@@ -45,8 +35,6 @@
             helpToolStripMenuItem = new ToolStripMenuItem();
             enableAllToolStripMenuItem = new ToolStripMenuItem();
             disableAllToolStripMenuItem = new ToolStripMenuItem();
-            menuStrip1.SuspendLayout();
-            SuspendLayout();
             // 
             // patchList
             // 
@@ -68,7 +56,6 @@
             patchList.Nodes.AddRange(new TreeNode[] { treeNode3, treeNode5 });
             patchList.Size = new Size(409, 351);
             patchList.TabIndex = 1;
-            patchList.AfterSelect += patchList_AfterSelect;
             // 
             // patchButton
             // 
@@ -80,6 +67,7 @@
             patchButton.TabIndex = 2;
             patchButton.Text = "Patch!";
             patchButton.UseVisualStyleBackColor = true;
+            patchButton.Click += patchButton_Click;
             // 
             // launchGameButton
             // 
@@ -91,6 +79,7 @@
             launchGameButton.TabIndex = 3;
             launchGameButton.Text = "Launch game";
             launchGameButton.UseVisualStyleBackColor = true;
+            launchGameButton.Click += launchGameButton_Click;
             // 
             // menuStrip1
             // 
@@ -145,7 +134,7 @@
             enableAllToolStripMenuItem.Name = "enableAllToolStripMenuItem";
             enableAllToolStripMenuItem.Size = new Size(224, 26);
             enableAllToolStripMenuItem.Text = "Enable all patches";
-            enableAllToolStripMenuItem.Click += enableAllToolStripMenuItem_Click;
+            //enableAllToolStripMenuItem.Click += enableAllToolStripMenuItem_Click;
             // 
             // disableAllToolStripMenuItem
             // 
@@ -165,15 +154,10 @@
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MainMenuStrip = menuStrip1;
             Name = "MainWindow";
-            StartPosition = FormStartPosition.CenterScreen;
-            Text = " CircloO Patcher";
-            menuStrip1.ResumeLayout(false);
-            menuStrip1.PerformLayout();
-            ResumeLayout(false);
-            PerformLayout();
+            StartPosition = FormStartPosition.CenterScreen; // use this instead of CenterToScreen()
+            Text = "CircloO Patcher v" + Settings.Instance.PatcherVersion;
         }
 
-        #endregion
         private TreeView patchList;
         private Button patchButton;
         private Button launchGameButton;
