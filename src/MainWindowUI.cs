@@ -1,5 +1,6 @@
 ﻿using System.Windows.Forms;
 using System.ComponentModel;
+using System.Drawing;
 
 namespace cpatcher
 {
@@ -155,7 +156,7 @@ namespace cpatcher
             MainMenuStrip = menuStrip1;
             Name = "MainWindow";
             StartPosition = FormStartPosition.CenterScreen; // use this instead of CenterToScreen()
-            Text = "CircloO Patcher v" + Settings.Instance.PatcherVersion;
+            Text = "CircloO Patcher v" + PatcherVersion;
         }
 
         private TreeView patchList;

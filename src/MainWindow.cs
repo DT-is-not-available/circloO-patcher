@@ -5,23 +5,30 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using UndertaleModLib;
 using UndertaleModLib.Scripting;
 using UndertaleModLib.Util;
 using UndertaleModLib.Models;
+using System.Xml.Serialization;
 
 namespace cpatcher;
 
 public partial class MainWindow : Form
 {
+    public static string PatcherVersion { get; } = "0.1.0";
+    public static string CircloOVersion { get; } = "1.12";
+
+    public bool AppLocked = false;
     public UndertaleData Data { get; set; }
     public MainWindow()
     {
-        new Settings();
+        //new Settings();
         InitializeComponent();
+        ReloadPaths();
         //InitializePaths();
-        //this.Data = ReadDataFile(new FileInfo(Settings.Instance.CircloODataPath));
+        //this.Data = ReadDataFile(new FileInfo(Settings.Default.CircloODataPath));
         // gonna add the message and warning handlers later
     }
 

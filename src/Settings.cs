@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing.Text;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,21 +12,23 @@ namespace cpatcher;
 
 internal class Settings
 {
-    public static Settings Instance = null;
+    public static Settings Default;
 
+    //public static string AppDataFolder = Path.Combine(
+    //    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+    //    "cpatcher"
+    // );
 
-    public string PatcherVersion { get; set; } = "0.1.0"; //MainWindow.Version;
-    public string CircloOVersion { get; set; } = "1.11"; //MainWindow.Version;
+    //public string PatcherVersion { get; } = "0.1.0"; //MainWindow.Version;
+    //public static string PatcherVersion => Assembly.GetExecutingAssembly().GetName().Version.ToString();
+    //public static string CircloOVersion = "1.11";
+    //public bool AppLocked { get; set; } = false;
 
-    public string CircloOPath { get; set; } = "";
-
-    public string CircloODataPath => CircloOPath + "data.win"; // later add support for actually saving the config somewhere
-
-    public string CircloOBackupPath => CircloOPath + "backups/";
-
-    public string CircloOPatchesPath => CircloOPath + "patches/";
+    //public static string PatchesFolder => Path.Combine(AppDataFolder, "patches");
+    //public static string BackupsFolder => Path.Combine(AppDataFolder, "backups");
+    //public string CircloOPath { get; set; } = "";
 
     public Settings() {
-        Instance = this;
+        Default = this;
     }
 }

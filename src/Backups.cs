@@ -7,23 +7,77 @@ using System.IO;
 
 namespace cpatcher;
 
+public struct BackupInfo
+{
+    public BackupInfo(string fullPath)
+    {
+        // we're just gonna trust that all backups are data wins
+        string[] fileSplit = Path.GetFileNameWithoutExtension(fullPath).Split("-");
+        if (fileSplit.Length == 2)
+        {
+            Name = fileSplit[0];
+            Version = fileSplit[1];
+            FullPath = fullPath;
+        } else
+        {
+            throw new ArgumentException("Full path must be in the format of name-version", "fullPath");
+        }
+    }
+    public string Name;
+    public string Version;
+    public string FullPath;
+}
+
 public partial class MainWindow
 {
-    public static List<string> Backups = new List<string>();
+    public List<BackupInfo> Backups = new List<BackupInfo>();
+
     public void LoadBackups()
     {
-        Backups = Directory.GetFiles(Settings.Instance.CircloOBackupPath, "*.win", SearchOption.AllDirectories).ToList();
-    }
-    public string GetLatestVanilla()
-    {
-        foreach (string backup in Backups)
+        string[] backups = Directory.GetFiles(BackupsPath, "*.win", SearchOption.TopDirectoryOnly);
+        foreach (string backup in backups)
         {
-            string[] fileSplit = Path.GetFileNameWithoutExtension(backup).Split("-"); // we're just gonna trust that all backups are data wins
-            if (fileSplit[0] == "vanilla" && fileSplit[1] == Settings.Instance.CircloOVersion)
+            try
             {
-                return backup;
+                Backups.Add(new BackupInfo(backup));
+            } catch
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load backup {backup}");
             }
         }
-        return "";
+    }
+    public void CreateNewBackup()
+    {
+        string GetDataWinBackup(bool firstTry)
+        {
+            string dataWinBackup = Path.Join(BackupsPath, $"vanilla-{CircloOVersion}");
+            if (File.Exists(dataWinBackup) == true)
+            {
+                // tell the user that there already exists a backup with data win with current version of circloo.
+                // update the software so CircloOVersion would update, or type the verison manually
+                // if firstTry
+                string userInput = "h";
+                dataWinBackup = Path.Join(BackupsPath, $"vanilla-{userInput}");
+                if (File.Exists(dataWinBackup) == true)
+                {
+                    GetDataWinBackup(false);
+                }
+            }
+            return dataWinBackup;
+        }
+        string dataWinBackup = GetDataWinBackup(true);
+        string dataWin = GetDataWinPath();
+        if (dataWin != "")
+        {
+            try
+            {
+                File.Copy(dataWin, Path.Join(BackupsPath, dataWinBackup));
+                Backups.Add(new BackupInfo(dataWinBackup));
+            }
+            catch
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to create backup {dataWinBackup} for {dataWin}");
+            }
+        }
     }
 }
