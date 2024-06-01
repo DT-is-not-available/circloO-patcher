@@ -47,13 +47,13 @@ public partial class MainWindow
         Data = data;
     }
 
-    public void SaveDataFile(string outputPath, UndertaleWriter.MessageHandlerDelegate messageHandler = null)
+    public static void SaveDataFile(UndertaleData datafile, string outputPath, UndertaleWriter.MessageHandlerDelegate messageHandler = null)
     {
         using FileStream fs = new FileInfo(outputPath).OpenWrite();
-        UndertaleIO.Write(fs, Data, messageHandler);
+        UndertaleIO.Write(fs, datafile, messageHandler);
     }
 
-    public UndertaleData ReadDataFile(FileInfo datafile, UndertaleReader.WarningHandlerDelegate warningHandler = null, UndertaleReader.MessageHandlerDelegate messageHandler = null)
+    public static UndertaleData ReadDataFile(FileInfo datafile, UndertaleReader.WarningHandlerDelegate warningHandler = null, UndertaleReader.MessageHandlerDelegate messageHandler = null)
     {
         try
         {
