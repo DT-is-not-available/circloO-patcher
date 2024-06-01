@@ -2,16 +2,84 @@
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms.Design;
 using System.Xml.Linq;
-using static UndertaleModLib.Compiler.Compiler.AssemblyWriter;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Scripting;
+using UndertaleModLib;
+using UndertaleModLib.Models;
+using UndertaleModLib.Scripting;
 
 namespace cpatcher;
 
-// everything what will be included in setup phase
+public class PatchGlobals
+{
+    /// <summary>
+    /// the circloo data win
+    /// </summary>
+    public UndertaleData Data = MainWindow.Data;
+
+    /// <summary>
+    /// path to the root of circloo
+    /// </summary>
+    public string CircloORootPath { get; } = MainWindow.CircloORootPath;
+
+    /// <summary>
+    /// path to the currently executed patch
+    /// </summary>
+    public string PatchPath { get; init; }
+
+    /// <summary>
+    /// ensures that a valid data file (<see cref="Data"/>) is loaded. an exception should be thrown if it isn't.
+    /// </summary>
+    public void EnsureDataLoaded()
+    {
+        if (Data is null)
+            throw new Exception("No data file is currently loaded!");
+    }
+
+    // WIP: some actual error handling for patches, assembler (asm) integration
+
+    // source: cirqol
+    /// <summary>
+    /// get undertale code inside data from code name, and create it if doesnt exist, as an option
+    /// </summary>
+    public UndertaleCode? Code(string codeName, bool makeIfNotExists = true)
+    {
+        UndertaleCode code = Data.Code.ByName(codeName);
+        if (code == null && makeIfNotExists)
+        {
+            UndertaleCodeLocals locals = new UndertaleCodeLocals();
+            locals.Name = Data.Strings.MakeString(codeName);
+            code = new UndertaleCode();
+            code.Name = locals.Name;
+            Data.Code.Add(code);
+            Data.CodeLocals.Add(locals);
+        }
+        return code;
+    }
+
+    /// <summary>
+    /// create gml function from gml code
+    /// </summary>
+    public void CreateGMLFunction(string code)
+    {
+        string funcname = Regex.Match(code, @"^\s*function\s*(\w+)").Groups[1].Value;
+        string filename = "gml_GlobalScript_" + funcname;
+        Code(filename).ReplaceGML(code, Data);
+    }
+
+    public PatchGlobals(string patchPath)
+    {
+        PatchPath = patchPath;
+    }
+}
+
 public readonly struct PatchInfo
 {
     public string Name { get; init; } // aka internal name, init makes it so it cant be changes afterwards
@@ -42,9 +110,56 @@ public class Patch
         this.Info = info;
     }
 
-    public void Execute()
+    // samples:
+    // https://github.com/dotnet/roslyn/blob/main/docs/wiki/Scripting-API-Samples.md
+    // https://github.com/UnderminersTeam/UndertaleModTool/blob/fb312d9a2b64063dcd458b9cdec3acb06c081db0/UndertaleModTool/ScriptingFunctions.cs#L58
+    // https://github.com/UnderminersTeam/UndertaleModTool/blob/fb312d9a2b64063dcd458b9cdec3acb06c081db0/UndertaleModTool/MainWindow.xaml.cs#L248
+    public async void Execute()
     {
-        // roslyn RunCSharpScript here
+        if (!File.Exists(CodePath))
+        {
+            return; // false
+        }
+
+        try
+        {
+            /*ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddImports("UndertaleModLib", "UndertaleModLib.Models", "UndertaleModLib.Decompiler",
+                    "UndertaleModLib.Scripting", "UndertaleModLib.Compiler",
+                    "UndertaleModTool", "System", "System.IO", "System.Collections.Generic",
+                    "System.Text.RegularExpressions")
+                .AddReferences(typeof(UndertaleObject).GetTypeInfo().Assembly, typeof(System.Text.RegularExpressions.Regex).GetTypeInfo().Assembly)
+                .WithEmitDebugInformation(true); // when script throws an exception, add a exception location (line number)
+            */
+
+            ScriptOptions scriptOptions = ScriptOptions.Default;
+
+            //CancellationTokenSource source = new CancellationTokenSource(100);
+            //CancellationToken token = source.Token;
+
+            PatchGlobals globals = new PatchGlobals(CodePath);
+
+            object result = await CSharpScript.EvaluateAsync(
+                File.ReadAllText(CodePath),
+                scriptOptions,
+                globals,
+                typeof(PatchGlobals)
+                //token
+            );
+
+            MainWindow.Data = globals.Data;
+        }
+        catch (OutOfMemoryException) { }
+        /*catch (CompilationErrorException)
+        {
+            return; // false
+        }
+        catch (Exception)
+        {
+            return; // true
+        }*/
+
+        return; // true
     }
 }
 
@@ -88,7 +203,8 @@ public partial class MainWindow
     private string FindDirective(string source, string directiveName)
     {
         // #load\s([^\n]*)(?=\n|$)
-        Match match = Regex.Match(source, $@"#{directiveName}\s([^\n]*)(?=\n|$)");
+        string directivePrefix = @"\/\/\$"; // im constantly changing this, just a directive like # wont work
+        Match match = Regex.Match(source, $@"{directivePrefix}{directiveName}\s([^\n]*)(?=\n|$)");
         
         if (match.Success)
         {
@@ -147,7 +263,7 @@ public partial class MainWindow
 
     public bool HasPatch(Patch patch)
     {
-        return GetSelectedPatches().Any(p => p.Info.Name == patch.Info.Name);
+        return SelectedPatches.Any(p => p.Info.Name == patch.Info.Name);
     }
 
     public void ExecuteAllPatches()

@@ -17,7 +17,7 @@ namespace cpatcher;
 
 public partial class MainWindow
 {
-    public UndertaleData Data { get; set; }
+    public static UndertaleData Data { get; set; }
 
     public void LoadDataFile()
     {
@@ -44,7 +44,7 @@ public partial class MainWindow
             }
         }
 
-        this.Data = data;
+        Data = data;
     }
 
     public void SaveDataFile(string outputPath, UndertaleWriter.MessageHandlerDelegate messageHandler = null)
@@ -65,5 +65,20 @@ public partial class MainWindow
         {
             throw new FileNotFoundException($"Data file '{e.FileName}' does not exist");
         }
+    }
+
+    public static UndertaleCode? Code(string codeName, bool makeIfNotExists = true)
+    {
+        UndertaleCode code = Data.Code.ByName(codeName);
+        if (code == null && makeIfNotExists)
+        {
+            UndertaleCodeLocals locals = new UndertaleCodeLocals();
+            locals.Name = Data.Strings.MakeString(codeName);
+            code = new UndertaleCode();
+            code.Name = locals.Name;
+            Data.Code.Add(code);
+            Data.CodeLocals.Add(locals);
+        }
+        return code;
     }
 }

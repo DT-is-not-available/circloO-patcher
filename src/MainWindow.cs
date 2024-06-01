@@ -18,24 +18,35 @@ public partial class MainWindow : Form
     public MainWindow()
     {
         LoadPaths();
-        InitializeComponent();
+        LoadPatches();
         LoadSelectedPatches();
+        InitializeComponent();
         ReloadPatchList();
-
-        //this.Data = ReadDataFile(new FileInfo(Settings.Default.CircloODataPath));
-        // gonna add the message and warning handlers later
     }
 
     private void patchButton_Click(object sender, EventArgs e)
     {
         LoadDataFile();
         ExecuteAllPatches();
+        Code("hasbeenmodded");
         SaveDataFile(CircloODataPath);
+        MessageBox.Show("Finished patching! Now you can open the game.", "Finished", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     private void launchGameButton_Click(object sender, EventArgs e)
     {
-        Process.Start("steam://rungameid/2195630");
+        try
+        {
+            Process.Start(new ProcessStartInfo("steam://rungameid/2195630") { UseShellExecute = true });
+        }
+        catch (Win32Exception)
+        {
+            MessageBox.Show("Something went wrong!", "Something went wrong!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        catch (FileNotFoundException)
+        {
+            MessageBox.Show("Something went wrong!", "Something went wrong!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void browseCircloOFiles_Click(object sender, EventArgs e)
