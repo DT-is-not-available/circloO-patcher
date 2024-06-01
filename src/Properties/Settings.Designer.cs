@@ -25,25 +25,12 @@ namespace cpatcher.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string CircloORootPath {
+        public global::System.Collections.Specialized.StringCollection SelectedPatches {
             get {
-                return ((string)(this["CircloORootPath"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["SelectedPatches"]));
             }
             set {
-                this["CircloORootPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool BackupOnPatch {
-            get {
-                return ((bool)(this["BackupOnPatch"]));
-            }
-            set {
-                this["BackupOnPatch"] = value;
+                this["SelectedPatches"] = value;
             }
         }
     }

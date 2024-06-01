@@ -2,11 +2,8 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="cpatcher.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="CircloORootPath" Type="System.String" Scope="User">
+    <Setting Name="SelectedPatches" Type="System.Collections.Specialized.StringCollection" Scope="User">
       <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="BackupOnPatch" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

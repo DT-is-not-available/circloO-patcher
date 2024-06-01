@@ -19,13 +19,41 @@ public partial class MainWindow
 {
     public UndertaleData Data { get; set; }
 
-    private void SaveDataFile(string outputPath, UndertaleWriter.MessageHandlerDelegate messageHandler = null)
+    public void LoadDataFile()
+    {
+        string filePath = CircloODataPath;
+        UndertaleData data = ReadDataFile(new FileInfo(filePath));
+        string backupPath = Path.Combine(BackupsPath, $"{data.GeneralInfo.FileName.Content}-{data.GeneralInfo.Timestamp}.win");
+
+        if (data.Code.ByName("hasbeenmodded") != null) // was modded
+        {
+            if (!File.Exists(backupPath) || filePath == backupPath)
+            {
+                MessageBox.Show("Automated backup not found in backups folder. If you have a manually created backup, please copy it to application data and try again.", "CircloO Patcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            } else
+            {
+                File.Copy(backupPath, filePath, true);
+                LoadDataFile();
+            }
+        } else // wasn't modded
+        {
+            if (!File.Exists(backupPath))
+            {
+                File.Copy(filePath, backupPath, true);
+            }
+        }
+
+        this.Data = data;
+    }
+
+    public void SaveDataFile(string outputPath, UndertaleWriter.MessageHandlerDelegate messageHandler = null)
     {
         using FileStream fs = new FileInfo(outputPath).OpenWrite();
         UndertaleIO.Write(fs, Data, messageHandler);
     }
 
-    private static UndertaleData ReadDataFile(FileInfo datafile, UndertaleReader.WarningHandlerDelegate warningHandler = null, UndertaleReader.MessageHandlerDelegate messageHandler = null)
+    public UndertaleData ReadDataFile(FileInfo datafile, UndertaleReader.WarningHandlerDelegate warningHandler = null, UndertaleReader.MessageHandlerDelegate messageHandler = null)
     {
         try
         {
@@ -37,10 +65,5 @@ public partial class MainWindow
         {
             throw new FileNotFoundException($"Data file '{e.FileName}' does not exist");
         }
-    }
-
-    private void patchButton_Click(object sender, EventArgs e)
-    {
-        MessageBox.Show("You patched!");
     }
 }
