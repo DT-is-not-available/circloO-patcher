@@ -19,6 +19,7 @@ public partial class MainWindow : Form
     {
         LoadPaths();
         InitializeComponent();
+        LoadSelectedPatches();
         ReloadPatchList();
 
         //this.Data = ReadDataFile(new FileInfo(Settings.Default.CircloODataPath));
@@ -39,7 +40,7 @@ public partial class MainWindow : Form
 
     private void browseCircloOFiles_Click(object sender, EventArgs e)
     {
-        if (Directory.Exists(CircloODataPath))
+        if (Directory.Exists(CircloORootPath))
             Process.Start("explorer.exe", CircloORootPath);
     }
 

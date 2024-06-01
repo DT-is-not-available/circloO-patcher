@@ -1,6 +1,7 @@
 ﻿using System.Windows.Forms;
 using System.ComponentModel;
 using System.Drawing;
+using System.Reflection;
 
 namespace cpatcher;
 
@@ -17,23 +18,87 @@ partial class MainWindow
         base.Dispose(disposing);
     }
 
+    public ListView patchList = new();
+
+    private TextBox searchTextBox = new();
+    private Button reloadPatchesButton = new();
+    private Button patchButton = new();
+    private Button launchGameButton = new();
+
+    private MenuStrip menuStrip1 = new();
+
+    private ToolStripMenuItem fileToolStripMenuItem = new();
+    private ToolStripMenuItem browseCircloOFilesToolStripMenuItem = new();
+    private ToolStripMenuItem browsePatcherFilesToolStripMenuItem = new();
+
+    private ToolStripMenuItem editToolStripMenuItem = new();
+    private ToolStripMenuItem enableAllToolStripMenuItem = new();
+    private ToolStripMenuItem disableAllToolStripMenuItem = new();
+
+    private ToolStripMenuItem viewToolStripMenuItem = new();
+    private ToolStripMenuItem reloadPatchesToolStripMenuItem = new();
+
+    private ToolStripMenuItem settingsToolStripMenuItem = new();
+
+    private ToolStripMenuItem helpToolStripMenuItem = new();
+
     private void InitializeComponent()
     {
         // 
         // patchList
         // 
-        patchList = new ListView();
         patchList.Anchor = AnchorStyles.Top;
         patchList.CheckBoxes = true;
-        patchList.Location = new Point(9, 31);
+        patchList.Scrollable = true;
+        patchList.Location = new Point(9, 70); // 31
         patchList.Name = "patchList";
-        patchList.Size = new Size(409, 351);
+        patchList.Size = new Size(409, 300); // 351
         patchList.TabIndex = 1;
         patchList.Sorting = SortOrder.Ascending;
-        patchList.GridLines = true;
-        patchList.Columns.Add("Name");
-        patchList.Columns.Add("Version");
-        patchList.Columns.Add("Author");
+        patchList.ShowItemToolTips = true;
+        patchList.View = View.Details;
+        patchList.ItemChecked += patchList_ItemChecked;
+        //patchList.GridLines = true;
+        //patchList.LabelWrap = true;
+
+        ColumnHeader patchListNameHeader = new ColumnHeader();
+        patchListNameHeader.Text = "Name";
+        patchListNameHeader.Width = -2;
+        patchList.Columns.Add(patchListNameHeader);
+
+        ColumnHeader patchListVersionHeader = new ColumnHeader();
+        patchListVersionHeader.Text = "Version";
+        patchListVersionHeader.Width = -2;
+        patchList.Columns.Add(patchListVersionHeader);
+
+        //ColumnHeader patchListAuthorHeader = new ColumnHeader();
+        //patchListAuthorHeader.Text = "Author";
+        //patchListAuthorHeader.Width = -2;
+        //patchList.Columns.Add(patchListAuthorHeader);
+
+        // 
+        // searchTextBox
+        // 
+        searchTextBox.Anchor = AnchorStyles.Top;
+        searchTextBox.Location = new Point(9, 31);
+        searchTextBox.Name = "searchTextBox";
+        searchTextBox.PlaceholderText = "Search";
+        searchTextBox.Size = new Size(380, 70);
+        searchTextBox.TabIndex = 2;
+        searchTextBox.TextChanged += searchTextBox_TextChanged;
+
+        // 
+        // reloadPatchesButton
+        // 
+        reloadPatchesButton.Anchor = AnchorStyles.Top;
+        reloadPatchesButton.Location = new Point(390, 31);
+        reloadPatchesButton.Name = "reloadPatchesButton";
+        reloadPatchesButton.Size = new Size(28, 28);
+        reloadPatchesButton.TabIndex = 2;
+        reloadPatchesButton.Click += reloadPatches_Click;
+        reloadPatchesButton.Image = Resource1.reload32.ToBitmap().GetThumbnailImage(12, 12, null, IntPtr.Zero);
+        reloadPatchesButton.ImageAlign = ContentAlignment.MiddleCenter;
+        reloadPatchesButton.TextAlign = ContentAlignment.MiddleCenter;
 
 
         // 
@@ -126,7 +191,7 @@ partial class MainWindow
         // viewToolStripMenuItem
         // 
         viewToolStripMenuItem = new ToolStripMenuItem();
-        editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { reloadPatchesToolStripMenuItem });
+        viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { reloadPatchesToolStripMenuItem });
         viewToolStripMenuItem.Name = "viewToolStripMenuItem";
         viewToolStripMenuItem.Size = new Size(55, 24);
         viewToolStripMenuItem.Text = "View";
@@ -167,37 +232,23 @@ partial class MainWindow
         AutoScaleDimensions = new SizeF(8F, 20F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(430, 450);
+        Controls.Add(menuStrip1);
+        Controls.Add(patchList);
+        Controls.Add(searchTextBox);
+        Controls.Add(reloadPatchesButton);
         Controls.Add(launchGameButton);
         Controls.Add(patchButton);
-        Controls.Add(patchList);
-        Controls.Add(menuStrip1);
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MainMenuStrip = menuStrip1;
         Name = "MainWindow";
         StartPosition = FormStartPosition.CenterScreen; // use this instead of CenterToScreen()
         Text = "CircloO Patcher v" + PatcherVersion;
+        MaximizeBox = false;
+        //ControlBox = false;
+        FormBorderStyle = FormBorderStyle.FixedSingle;
+        //Icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath);
+        //Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("cpatcher.icon96.ico"));
+        Icon = Resource1.icon96;
     }
-
-    public ListView patchList;
-
-    private Button patchButton;
-    private Button launchGameButton;
-
-    private MenuStrip menuStrip1;
-
-    private ToolStripMenuItem fileToolStripMenuItem;
-    private ToolStripMenuItem browseCircloOFilesToolStripMenuItem;
-    private ToolStripMenuItem browsePatcherFilesToolStripMenuItem;
-
-    private ToolStripMenuItem editToolStripMenuItem;
-    private ToolStripMenuItem enableAllToolStripMenuItem;
-    private ToolStripMenuItem disableAllToolStripMenuItem;
-
-    private ToolStripMenuItem viewToolStripMenuItem;
-    private ToolStripMenuItem reloadPatchesToolStripMenuItem;
-
-    private ToolStripMenuItem settingsToolStripMenuItem;
-
-    private ToolStripMenuItem helpToolStripMenuItem;
 }
 

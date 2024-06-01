@@ -51,6 +51,7 @@ public class Patch
 public partial class MainWindow
 {
     public List<Patch> Patches { get; set; } = new List<Patch>();
+    public List<Patch> SelectedPatches { get; set; } = new List<Patch>();
 
     public Patch? FindByName(string name)
     {
@@ -72,47 +73,49 @@ public partial class MainWindow
         }
         return selectedPatches;
     }
-
-    private string[] FindDirective(string source, string directiveName)
+    public void LoadSelectedPatches()
     {
-        Match match = Regex.Match(source, $@"#\s*{directiveName}\s*([^\n]*)\");
+        SelectedPatches = GetSelectedPatches();
+    }
+    public void SaveSelectedPatches()
+    {
+        System.Collections.Specialized.StringCollection sc = new();
+        sc.AddRange(SelectedPatches.Select(p => p.Info.Name).ToArray());
+        Properties.Settings.Default.SelectedPatches = sc;
+        Properties.Settings.Default.Save();
+    }
+
+    private string FindDirective(string source, string directiveName)
+    {
+        // #load\s([^\n]*)(?=\n|$)
+        Match match = Regex.Match(source, $@"#{directiveName}\s([^\n]*)(?=\n|$)");
         
         if (match.Success)
         {
-            return match.Groups[1].Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return match.Groups[1].Value.Trim();
         } else
         {
-            return [];
+            return "";
         }
     }
     public PatchInfo GetPatchInfo(string fileName, string code)
     {
-        string[] r;
+        string r;
 
-        string name = fileName;
         r = FindDirective(code, "name");
-        if (r.Length > 0)
-            name = r[0];
+        string name = String.IsNullOrEmpty(r) ? fileName : r;
 
-        string displayName = name;
         r = FindDirective(code, "displayname");
-        if (r.Length > 0)
-            displayName = r[0];
+        string displayName = String.IsNullOrEmpty(r) ? name : r;
 
-        string description = "";
         r = FindDirective(code, "description");
-        if (r.Length > 0)
-            description = r[0];
+        string description = String.IsNullOrEmpty(r) ? "" : r;
 
-        string version = "0.1.0";
         r = FindDirective(code, "version");
-        if (r.Length > 0)
-            version = r[0];
+        string version = String.IsNullOrEmpty(r) ? "0.1.0" : r;
 
-        string author = "";
         r = FindDirective(code, "author");
-        if (r.Length > 0)
-            author = r[0];
+        string author = String.IsNullOrEmpty(r) ? "" : r;
 
         return new PatchInfo(name, displayName, description, version, author);
     }
@@ -162,16 +165,50 @@ public partial class MainWindow
     {
         LoadPatches(true);
         patchList.Items.Clear();
+        patchList.BeginUpdate();
         foreach (Patch patch in Patches) {
-            string author = String.IsNullOrEmpty(patch.Info.Author) ? "N/A" : patch.Info.Author;
-            ListViewItem listItem = new ListViewItem(new[] { patch.Info.DisplayName, patch.Info.Version, author });
-            listItem.ToolTipText = $"{patch.Info.DisplayName} ({patch.Info.Name}){System.Environment.NewLine}{System.Environment.NewLine}{patch.Info.Description}";
+            string description = String.IsNullOrEmpty(patch.Info.Description) ? "" : "\n\n" + patch.Info.Description;
+            string author = "\n\nMade by: " + (String.IsNullOrEmpty(patch.Info.Author) ? "N/A" : patch.Info.Author);
+
+            ListViewItem listItem = new ListViewItem(new[] { patch.Info.DisplayName, patch.Info.Version });
+            listItem.Tag = patch;
+            listItem.ToolTipText = $"{patch.Info.DisplayName} ({patch.Info.Name}){description}{author}\nVersion: {patch.Info.Version}";
+
+            if (HasPatch(patch))
+                listItem.Checked = true;
+
             patchList.Items.Add(listItem);
         }
+        patchList.EndUpdate();
     }
             
     private void reloadPatches_Click(object sender, EventArgs e)
     {
         ReloadPatchList();
+    }
+
+    private void searchTextBox_TextChanged(object sender, EventArgs e)
+    {
+        ListViewItem? foundItem =
+            patchList.FindItemWithText(searchTextBox.Text, true, 0, true);
+        if (foundItem != null)
+        {
+            patchList.TopItem = foundItem;
+        }
+    }
+
+    private void patchList_ItemChecked(object sender, ItemCheckedEventArgs e)
+    {
+        Patch? checkedPatch = (Patch)e.Item.Tag;
+        if (checkedPatch != null)
+        {
+            if (e.Item.Checked && SelectedPatches.Find(p => p.Info.Name == checkedPatch.Info.Name) == null)
+                SelectedPatches.Add(checkedPatch);
+
+            if (!e.Item.Checked && SelectedPatches.Find(p => p.Info.Name == checkedPatch.Info.Name) != null)
+                SelectedPatches.Remove(checkedPatch);
+
+            SaveSelectedPatches();
+        }
     }
 }
