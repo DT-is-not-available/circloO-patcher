@@ -24,39 +24,65 @@ namespace cpatcher;
 public partial class MainWindow
 {
     public List<Patch> Patches { get; set; } = new();
-    public List<Patch> SelectedPatches { get; set; } = new();
+    public List<string> SelectedPatches { get; set; } = new();
 
-    private bool AnyPatch(Patch patch, List<Patch> listPatch)
+    // selected patches
+
+    public bool IsPatchSelected(Patch patch)
     {
-        return listPatch.Any(p => p.Info.Name == patch.Info.Name);
+        return SelectedPatches.Any(p => p == patch.Info.Name);
+    }
+    public bool IsPatchSelected(string patch)
+    {
+        return SelectedPatches.Any(p => p == patch);
     }
 
-    public List<Patch> GetSelectedPatches()
+    private void SelectPatch(Patch patch)
     {
-        List<Patch> selectedPatches = new();
+        if (!IsPatchSelected(patch))
+            SelectedPatches.Add(patch.Info.Name);
+    }
+    private void SelectPatch(string patch)
+    {
+        if (!IsPatchSelected(patch))
+            SelectedPatches.Add(patch);
+    }
+
+    private void UnselectPatch(Patch patch)
+    {
+        SelectedPatches.Remove(patch.Info.Name);
+    }
+    private void UnselectPatch(string patch)
+    {
+        SelectedPatches.Remove(patch);
+    }
+
+    public void LoadSelectedPatches()
+    {
         if (Properties.Settings.Default.SelectedPatches != null)
         {
             foreach (string? patchName in Properties.Settings.Default.SelectedPatches)
             {
-                Patch? foundPatch = Patches.Find(p => p.Info.Name == patchName);
-                if (foundPatch != null && !AnyPatch(foundPatch, selectedPatches))
-                {
-                    selectedPatches.Add(foundPatch);
-                }
+                Debug.WriteLine("LoadSelectedPatches patchName: " + patchName);
+                if (Patches.Any(p => p.Info.Name == patchName))
+                    SelectPatch(patchName);
             }
         }
-        return selectedPatches;
-    }
-    public void LoadSelectedPatches()
-    {
-        SelectedPatches = GetSelectedPatches();
     }
     public void SaveSelectedPatches()
     {
         System.Collections.Specialized.StringCollection sc = new();
-        sc.AddRange(SelectedPatches.Select(p => p.Info.Name).ToArray());
+        sc.AddRange(SelectedPatches.ToArray());
         Properties.Settings.Default.SelectedPatches = sc;
         Properties.Settings.Default.Save();
+    }
+
+    // patches
+
+    public void NewPatch(Patch patch)
+    {
+        if (!Patches.Any(p => p.Info.Name == patch.Info.Name))
+            Patches.Add(patch);
     }
 
     private string FindDirective(string source, string directiveName)
@@ -115,23 +141,12 @@ public partial class MainWindow
         }
     }
 
-    public void NewPatch(Patch patch)
-    {
-        if (!AnyPatch(patch, Patches))
-            Patches.Add(patch);
-    }
-
-    public bool HasPatch(Patch patch)
-    {
-        return AnyPatch(patch, SelectedPatches);
-    }
-
     public bool ExecuteAllPatches()
     {
         bool success = false;
         foreach (Patch patch in Patches)
         {
-            if (HasPatch(patch))
+            if (IsPatchSelected(patch))
             {
                 bool patchSuccess = patch.Execute();
                 if (patchSuccess)
@@ -142,9 +157,10 @@ public partial class MainWindow
         return success;
     }
 
+    // ui
+
     public void ReloadPatchList(string searchTerm = "")
     {
-        Debug.WriteLine("ReloadPatchList SelectedPatches.Count: " + SelectedPatches.Count);
         patchList.Items.Clear();
         patchList.BeginUpdate();
         foreach (Patch patch in Patches) {
@@ -167,11 +183,10 @@ public partial class MainWindow
         listItem.Tag = patch;
         listItem.ToolTipText = $"{patch.Info.DisplayName} ({patch.Info.Name}){description}{author}\nVersion: {patch.Info.Version}";
 
-        if (HasPatch(patch))
+        if (IsPatchSelected(patch))
             listItem.Checked = true;
 
         patchList.Items.Add(listItem);
-        Debug.WriteLine("AddPatchToList SelectedPatches.Count: " + SelectedPatches.Count);
     }
             
     private void reloadPatches_Click(object sender, EventArgs e)
@@ -197,11 +212,11 @@ public partial class MainWindow
         Patch? patch = (Patch?)e.Item.Tag;
         if (patch != null)
         {
-            if (e.Item.Checked && !HasPatch(patch))
-                SelectedPatches.Add(patch);
+            if (e.Item.Checked && !IsPatchSelected(patch))
+                SelectPatch(patch);
 
-            if (!e.Item.Checked && HasPatch(patch))
-                SelectedPatches.Remove(patch);
+            if (!e.Item.Checked && IsPatchSelected(patch))
+                UnselectPatch(patch);
 
             SaveSelectedPatches();
         }
@@ -211,23 +226,20 @@ public partial class MainWindow
     {
         foreach (Patch patch in Patches)
         {
-            if (!HasPatch(patch))
-                SelectedPatches.Add(patch);
+            if (!IsPatchSelected(patch))
+                SelectPatch(patch);
         }
-        Debug.WriteLine("enableAll_Click SelectedPatches.Count: " + SelectedPatches.Count);
         SaveSelectedPatches();
         ReloadPatchList();
     }
 
     private void disableAll_Click(object sender, EventArgs e)
     {
-        Debug.WriteLine("disableAll_Click before SelectedPatches.Count: " + SelectedPatches.Count);
         foreach (Patch patch in Patches)
         {
-            if (HasPatch(patch))
-                SelectedPatches.Remove(patch);
+            if (IsPatchSelected(patch))
+                UnselectPatch(patch);
         }
-        Debug.WriteLine("disableAll_Click SelectedPatches.Count: " + SelectedPatches.Count);
         SaveSelectedPatches();
         ReloadPatchList();
     }
