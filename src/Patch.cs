@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -161,7 +162,7 @@ public class Patch
             ScriptOptions scriptOptions = ScriptOptions.Default
                 .AddImports("UndertaleModLib", "UndertaleModLib.Models", "UndertaleModLib.Decompiler",
                     "UndertaleModLib.Scripting", "UndertaleModLib.Compiler",
-                    "UndertaleModTool", "System", "System.IO", "System.Collections.Generic",
+                    "System", "System.IO", "System.Collections.Generic",
                     "System.Text.RegularExpressions", "System.Linq")
                 .AddReferences(
                     typeof(UndertaleObject).GetTypeInfo().Assembly, 
@@ -171,8 +172,8 @@ public class Patch
 
             //ScriptOptions scriptOptions = ScriptOptions.Default;
 
-            CancellationTokenSource source = new CancellationTokenSource(100);
-            CancellationToken token = source.Token;
+            //CancellationTokenSource source = new CancellationTokenSource(100);
+            //CancellationToken token = source.Token;
 
             PatchGlobals globals = new PatchGlobals(MainWindow.Data, Info, MainWindow.CircloORootPath, CodePath);
 
@@ -180,21 +181,24 @@ public class Patch
                 File.ReadAllText(CodePath),
                 scriptOptions,
                 globals,
-                typeof(PatchGlobals),
-                token
+                typeof(PatchGlobals)
+                //token
             );
 
             MainWindow.Data = globals.Data;
         }
-        catch (CompilationErrorException exc)
+        catch (CompilationErrorException ex)
         {
-            MessageBox.Show($"Compilation error of patch {Info.DisplayName}: {exc}", $"Error from {Info.DisplayName}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Compilation error of patch {Info.DisplayName}: {ex}", $"Error from {Info.DisplayName}", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return true;
+            MessageBox.Show($"Caught exception from patch {Info.DisplayName}: {ex}", $"Error from {Info.DisplayName}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
         }
+
+        Debug.WriteLine("Patch.Execute success: " + Info.Name);
 
         return true;
     }

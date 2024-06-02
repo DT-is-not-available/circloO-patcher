@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -143,6 +144,7 @@ public partial class MainWindow
 
     public void ReloadPatchList(string searchTerm = "")
     {
+        Debug.WriteLine("ReloadPatchList SelectedPatches.Count: " + SelectedPatches.Count);
         patchList.Items.Clear();
         patchList.BeginUpdate();
         foreach (Patch patch in Patches) {
@@ -169,6 +171,7 @@ public partial class MainWindow
             listItem.Checked = true;
 
         patchList.Items.Add(listItem);
+        Debug.WriteLine("AddPatchToList SelectedPatches.Count: " + SelectedPatches.Count);
     }
             
     private void reloadPatches_Click(object sender, EventArgs e)
@@ -191,14 +194,14 @@ public partial class MainWindow
 
     private void patchList_ItemChecked(object sender, ItemCheckedEventArgs e)
     {
-        Patch? checkedPatch = (Patch)e.Item.Tag;
-        if (checkedPatch != null)
+        Patch? patch = (Patch?)e.Item.Tag;
+        if (patch != null)
         {
-            if (e.Item.Checked && !HasPatch(checkedPatch))
-                SelectedPatches.Add(checkedPatch);
+            if (e.Item.Checked && !HasPatch(patch))
+                SelectedPatches.Add(patch);
 
-            if (!e.Item.Checked && HasPatch(checkedPatch))
-                SelectedPatches.Remove(checkedPatch);
+            if (!e.Item.Checked && HasPatch(patch))
+                SelectedPatches.Remove(patch);
 
             SaveSelectedPatches();
         }
@@ -211,17 +214,20 @@ public partial class MainWindow
             if (!HasPatch(patch))
                 SelectedPatches.Add(patch);
         }
+        Debug.WriteLine("enableAll_Click SelectedPatches.Count: " + SelectedPatches.Count);
         SaveSelectedPatches();
         ReloadPatchList();
     }
 
     private void disableAll_Click(object sender, EventArgs e)
     {
+        Debug.WriteLine("disableAll_Click before SelectedPatches.Count: " + SelectedPatches.Count);
         foreach (Patch patch in Patches)
         {
             if (HasPatch(patch))
                 SelectedPatches.Remove(patch);
         }
+        Debug.WriteLine("disableAll_Click SelectedPatches.Count: " + SelectedPatches.Count);
         SaveSelectedPatches();
         ReloadPatchList();
     }

@@ -22,14 +22,18 @@ public partial class MainWindow
     public bool LoadDataFile()
     {
         string filePath = CircloODataPath;
+        if (!File.Exists(filePath))
+            return false;
+
         UndertaleData data = ReadDataFile(new FileInfo(filePath));
+
         string backupPath = Path.Combine(BackupsPath, $"{data.GeneralInfo.FileName.Content}-{data.GeneralInfo.Timestamp}.win");
 
         if (data.Code.ByName("hasbeenmodded") != null) // was modded
         {
             if (!File.Exists(backupPath) || filePath == backupPath)
             {
-                MessageBox.Show("Automated backup not found in backups folder. If you have a manually created backup, please copy it to application data and try again.", "CircloO Patcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Automated backup not found in backups folder. If you have a manually created backup, please copy it to game's root and try again.", "CircloO Patcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             } else
             {
