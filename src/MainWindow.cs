@@ -26,19 +26,38 @@ public partial class MainWindow : Form
 
     private void patchButton_Click(object sender, EventArgs e)
     {
-        LoadDataFile();
-
-        bool success = ExecuteAllPatches();
-        if (!success)
+        //UseWaitCursor = true;
+        Cursor.Current = Cursors.WaitCursor;
+        try
         {
-            MessageBox.Show("Nothing was patched, every selected patch failed!", "Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
+            bool success;
+
+            success = LoadDataFile();
+            if (!success)
+            {
+                throw new Exception("Failed to load data file");
+            }
+
+            success = ExecuteAllPatches();
+            if (!success)
+            {
+                MessageBox.Show("Nothing was patched, every selected patch failed!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                throw new Exception("Nothing was patched");
+            }
+
+            Code("hasbeenmodded");
+            SaveDataFile(Data, CircloODataPath);
+
+            MessageBox.Show("Finished patching! Now you can open the game.", "Finished", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        } catch (Exception ex)
+        {
+            MessageBox.Show($"Error happened during patching process: {ex}", "Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        } finally
+        {
+            Cursor.Current = Cursors.Default;
+            Data.Dispose();
         }
-
-        Code("hasbeenmodded");
-        SaveDataFile(Data, CircloODataPath);
-
-        MessageBox.Show("Finished patching! Now you can open the game.", "Finished", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     private void launchGameButton_Click(object sender, EventArgs e)

@@ -132,7 +132,6 @@ partial class MainWindow
         // 
         // browseCircloOFilesToolStripMenuItem
         // 
-        browseCircloOFilesToolStripMenuItem = new ToolStripMenuItem();
         browseCircloOFilesToolStripMenuItem.Name = "browseCircloOFilesToolStripMenuItem";
         browseCircloOFilesToolStripMenuItem.Size = new Size(224, 26);
         browseCircloOFilesToolStripMenuItem.Text = "Browse CircloO files...";
@@ -140,7 +139,6 @@ partial class MainWindow
         // 
         // browsePatcherFilesToolStripMenuItem
         // 
-        browsePatcherFilesToolStripMenuItem = new ToolStripMenuItem();
         browsePatcherFilesToolStripMenuItem.Name = "browsePatcherFilesToolStripMenuItem";
         browsePatcherFilesToolStripMenuItem.Size = new Size(224, 26);
         browsePatcherFilesToolStripMenuItem.Text = "Browse Patcher files...";
@@ -148,7 +146,6 @@ partial class MainWindow
         // 
         // fileToolStripMenuItem
         // 
-        fileToolStripMenuItem = new ToolStripMenuItem();
         fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { browseCircloOFilesToolStripMenuItem, browsePatcherFilesToolStripMenuItem });
         fileToolStripMenuItem.Name = "fileToolStripMenuItem";
         fileToolStripMenuItem.Size = new Size(46, 24);
@@ -158,21 +155,20 @@ partial class MainWindow
         // 
         // enableAllToolStripMenuItem
         // 
-        enableAllToolStripMenuItem = new ToolStripMenuItem();
         enableAllToolStripMenuItem.Name = "enableAllToolStripMenuItem";
         enableAllToolStripMenuItem.Size = new Size(224, 26);
         enableAllToolStripMenuItem.Text = "Enable all patches";
+        enableAllToolStripMenuItem.Click += enableAll_Click;
         // 
         // disableAllToolStripMenuItem
         // 
-        disableAllToolStripMenuItem = new ToolStripMenuItem();
         disableAllToolStripMenuItem.Name = "disableAllToolStripMenuItem";
         disableAllToolStripMenuItem.Size = new Size(224, 26);
         disableAllToolStripMenuItem.Text = "Disable all patches";
+        disableAllToolStripMenuItem.Click += disableAll_Click;
         // 
         // editToolStripMenuItem
         // 
-        editToolStripMenuItem = new ToolStripMenuItem();
         editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { enableAllToolStripMenuItem, disableAllToolStripMenuItem });
         editToolStripMenuItem.Name = "editToolStripMenuItem";
         editToolStripMenuItem.Size = new Size(49, 24);
@@ -182,7 +178,6 @@ partial class MainWindow
         // 
         // reloadPatchesToolStripMenuItem
         // 
-        reloadPatchesToolStripMenuItem = new ToolStripMenuItem();
         reloadPatchesToolStripMenuItem.Name = "reloadPatchesToolStripMenuItem";
         reloadPatchesToolStripMenuItem.Size = new Size(224, 26);
         reloadPatchesToolStripMenuItem.Text = "Reload patch list";
@@ -190,7 +185,6 @@ partial class MainWindow
         // 
         // viewToolStripMenuItem
         // 
-        viewToolStripMenuItem = new ToolStripMenuItem();
         viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { reloadPatchesToolStripMenuItem });
         viewToolStripMenuItem.Name = "viewToolStripMenuItem";
         viewToolStripMenuItem.Size = new Size(55, 24);
@@ -200,7 +194,6 @@ partial class MainWindow
         // 
         // settingsToolStripMenuItem
         // 
-        settingsToolStripMenuItem = new ToolStripMenuItem();
         settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
         settingsToolStripMenuItem.Size = new Size(76, 24);
         settingsToolStripMenuItem.Text = "Settings";
@@ -209,7 +202,6 @@ partial class MainWindow
         // 
         // helpToolStripMenuItem
         // 
-        helpToolStripMenuItem = new ToolStripMenuItem();
         helpToolStripMenuItem.Name = "helpToolStripMenuItem";
         helpToolStripMenuItem.Size = new Size(55, 24);
         helpToolStripMenuItem.Text = "Help";
@@ -217,7 +209,6 @@ partial class MainWindow
         // 
         // menuStrip1
         // 
-        menuStrip1 = new MenuStrip();
         menuStrip1.ImageScalingSize = new Size(20, 20);
         menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, editToolStripMenuItem, viewToolStripMenuItem, settingsToolStripMenuItem, helpToolStripMenuItem });
         menuStrip1.Location = new Point(0, 0);

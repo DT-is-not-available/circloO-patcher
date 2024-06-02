@@ -19,7 +19,7 @@ public partial class MainWindow
 {
     public static UndertaleData Data { get; set; }
 
-    public void LoadDataFile()
+    public bool LoadDataFile()
     {
         string filePath = CircloODataPath;
         UndertaleData data = ReadDataFile(new FileInfo(filePath));
@@ -30,7 +30,7 @@ public partial class MainWindow
             if (!File.Exists(backupPath) || filePath == backupPath)
             {
                 MessageBox.Show("Automated backup not found in backups folder. If you have a manually created backup, please copy it to application data and try again.", "CircloO Patcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                return false;
             } else
             {
                 File.Copy(backupPath, filePath, true);
@@ -45,6 +45,7 @@ public partial class MainWindow
         }
 
         Data = data;
+        return true;
     }
 
     public static void SaveDataFile(UndertaleData datafile, string outputPath, UndertaleWriter.MessageHandlerDelegate messageHandler = null)
