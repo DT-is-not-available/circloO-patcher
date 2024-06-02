@@ -49,7 +49,7 @@ public partial class MainWindow : Form
             }
 
             Debug.WriteLine("Code hasbeenmodded start");
-            Code("hasbeenmodded");
+            Code("hasbeenmodded", true);
 
             Debug.WriteLine("SaveDataFile start");
             SaveDataFile(Data, CircloODataPath);

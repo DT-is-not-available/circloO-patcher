@@ -11,7 +11,7 @@ using UndertaleModLib;
 using UndertaleModLib.Scripting;
 using UndertaleModLib.Util;
 using UndertaleModLib.Models;
-using System.Xml.Serialization;
+using System.Diagnostics;
 
 namespace cpatcher;
 
@@ -31,6 +31,7 @@ public partial class MainWindow
 
         if (data.Code.ByName("hasbeenmodded") != null) // was modded
         {
+            Debug.WriteLine("UndertaleData has been modded");
             if (!File.Exists(backupPath) || filePath == backupPath)
             {
                 MessageBox.Show("Automated backup not found in backups folder. If you have a manually created backup, please copy it to game's root and try again.", "CircloO Patcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -39,9 +40,12 @@ public partial class MainWindow
             {
                 File.Copy(backupPath, filePath, true);
                 LoadDataFile();
+                // this took me so much time to realise
+                return true;
             }
         } else // wasn't modded
         {
+            Debug.WriteLine("UndertaleData has NOT been modded");
             if (!File.Exists(backupPath))
             {
                 File.Copy(filePath, backupPath, true);
